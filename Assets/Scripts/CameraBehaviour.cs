@@ -114,13 +114,13 @@ public class CameraBehaviour : MonoBehaviour {
         float posZ = transform.position.z;
 
         //newHeight = Mathf.Max(newHeight, 2);
-        if (height < 2)
+        if (height < 3)
         {
-            height = Mathf.Lerp(height, 2, Time.deltaTime*constraintSpeed);
+            height = Mathf.Lerp(height, 3, Time.deltaTime*constraintSpeed);
         }
         if(height > GridManager.current.gridSize)
         {
-            height = Mathf.Min(Mathf.Lerp(height, GridManager.current.gridSize, Time.deltaTime * constraintSpeed), 400);
+            height = Mathf.Min(Mathf.Lerp(height, GridManager.current.gridSize, Time.deltaTime * constraintSpeed), GridManager.current.gridSize*2f);
         }
 
         if(posX < 2)

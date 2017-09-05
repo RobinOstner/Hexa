@@ -202,11 +202,11 @@ public class GridManager : MonoBehaviour {
             GameManager.current.NextTeam();
         }
 
-        TestBaseTilesConnection(baseTiles);
+        CheckBaseTilesConnection(baseTiles);
     }
     
     // Test the connection of all BaseTiles
-    public void TestBaseTilesConnection(List<HexTile> baseTiles)
+    public void CheckBaseTilesConnection(List<HexTile> baseTiles)
     {
         bool connected = false;
 
