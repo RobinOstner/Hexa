@@ -24,6 +24,54 @@ public class AI : MonoBehaviour {
     public void StartTurn()
     {
         FindNeighbourTiles();
+        ConquerTiles();
+    }
+
+    // Try To Conquer as many Tiles as possible
+    public void ConquerTiles()
+    {
+        List<HexTile> playerTiles = new List<HexTile>();
+        foreach (HexTile tile in playerComponent.tiles)
+        {
+            playerTiles.Add(tile);
+        }
+        foreach (HexTile ownTile in playerTiles)
+        {
+
+            foreach (HexTile neighbour in neighbourTiles)
+            {
+
+                // Stop if Tile doesn't have units
+                if (ownTile.units == 0)
+                {
+                    break;
+                }
+
+                if (ownTile.isBaseTile && ownTile.units == 1)
+                {
+                    break;
+                }
+
+                if (neighbour.IsNeighbourTo(ownTile))
+                {
+                    if (neighbour.team == GameManager.Teams.Null)
+                    {
+                        neighbour.units++;
+                        Debug.Log("Move to free tile " + neighbour + ": " + neighbour.units);
+                        neighbour.team = playerComponent.team;
+                        GameManager.current.AddTileToPlayer(neighbour);
+
+                        ownTile.units--;
+
+                        Debug.Log("Count: " + playerComponent.tiles.Count);
+                    }
+                    else
+                    {
+
+                    }
+                }
+            }
+        }
     }
 
     // Finds all Neighbouring Tiles
@@ -35,7 +83,10 @@ public class AI : MonoBehaviour {
         {
             foreach (HexTile neighbour in ownTile.neighbourTiles)
             {
-                neighbourTiles.Add(neighbour);
+                if (!neighbourTiles.Contains(neighbour))
+                {
+                    neighbourTiles.Add(neighbour);
+                }
             }
         }
 
