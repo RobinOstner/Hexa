@@ -139,8 +139,7 @@ public class GameManager : MonoBehaviour {
             nextTeamText.text = activeTeam.ToString().ToUpper() + " IS NEXT";
             nextTeamScreen.SetActive(true);
 
-            yield return new WaitForSeconds(1);
-
+            yield return new WaitUntil(() => Input.touchCount == 0);
             yield return new WaitUntil(() => Input.touchCount > 0);
 
             nextTeamScreen.SetActive(false);
