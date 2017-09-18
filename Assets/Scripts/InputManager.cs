@@ -41,9 +41,8 @@ public class InputManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-
         // Only Check if Player should be able to do something
-        if (GameManager.current.playerControl)
+        if (GameManager.current.playerControl && !GameManager.current.activePlayer.isAI)
         {
             CheckTap();
         }

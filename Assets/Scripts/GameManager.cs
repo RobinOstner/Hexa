@@ -75,6 +75,7 @@ public class GameManager : MonoBehaviour {
 
         Player newPlayer = Instantiate(playerPrefab, transform).GetComponent<Player>();
         newPlayer.ID = players.Count + 1;
+        newPlayer.isAI = false;
         players.Add(newPlayer);
         newPlayer = Instantiate(playerPrefab, transform).GetComponent<Player>();
         newPlayer.ID = players.Count + 1;
@@ -124,7 +125,7 @@ public class GameManager : MonoBehaviour {
             rounds++;
         }
 
-        activePlayer.FinishTurn();
+        activePlayer.StartTurn();
 
         StartCoroutine(PlayerChange());
     }
@@ -133,8 +134,13 @@ public class GameManager : MonoBehaviour {
     {
         if (!finished)
         {
-
             playerControl = false;
+
+            HexTile selected = InputManager.current.selectedHexTile;
+            if (selected != null)
+            {
+                InputManager.current.selectedHexTile.SetSelected(false);
+            }
 
             nextTeamText.text = activeTeam.ToString().ToUpper() + " IS NEXT";
             nextTeamScreen.SetActive(true);

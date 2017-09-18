@@ -4,6 +4,16 @@ using UnityEngine;
 
 public class Player : MonoBehaviour {
 
+    // The AI-Component attached to the gameobject
+    public AI aiComponent;
+
+    // Is this player AI controlled?
+    public bool isAI
+    {
+        get { return aiComponent.enabled; }
+        set { aiComponent.enabled = value; }
+    }
+
     // List with all Tiles of this player
     public List<HexTile> tiles;
 
@@ -19,7 +29,7 @@ public class Player : MonoBehaviour {
 	// Use this for initialization
 	void Start ()
     {
-        name = "Player " + ID;
+        name = "Player " + ID + ((isAI) ? " (AI)": "");
         tiles = new List<HexTile>();
 
         SetTeamColor();
@@ -51,7 +61,7 @@ public class Player : MonoBehaviour {
     }
 
     // Finishes the Turn and updates the counts of the Tiles
-    public void FinishTurn()
+    public void StartTurn()
     {
         if (tiles.Count > 0)
         {
@@ -70,6 +80,11 @@ public class Player : MonoBehaviour {
             foreach (HexTile tile in tiles)
             {
                 tile.moveLocked = false;
+            }
+
+            if (isAI)
+            {
+                aiComponent.StartTurn();
             }
         }
         else

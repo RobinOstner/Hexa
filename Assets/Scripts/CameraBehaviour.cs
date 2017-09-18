@@ -41,7 +41,7 @@ public class CameraBehaviour : MonoBehaviour {
 	void Update () {
 
         // Camera can only be controlled if Player is actually in Control
-        if (GameManager.current.playerControl)
+        if (GameManager.current.playerControl && !GameManager.current.activePlayer.isAI)
         {
             if (pinchZoomMoveEnabled)
             {
@@ -84,21 +84,24 @@ public class CameraBehaviour : MonoBehaviour {
 
     public IEnumerator MoveCameraToLast(Vector3 targetPos)
     {
-        bool touching = true;
-
-        while((transform.position - targetPos).magnitude >= .01f)
+        if (!GameManager.current.activePlayer.isAI)
         {
-            if(Input.touchCount == 0)
-            {
-                touching = false;
-            }
-            if (!touching && Input.touchCount > 0)
-            {
-                break;
-            }
+            bool touching = true;
 
-            transform.position = Vector3.Slerp(transform.position, targetPos, cameraSpeed);
-            yield return null;
+            while ((transform.position - targetPos).magnitude >= .01f)
+            {
+                if (Input.touchCount == 0)
+                {
+                    touching = false;
+                }
+                if (!touching && Input.touchCount > 0)
+                {
+                    break;
+                }
+
+                transform.position = Vector3.Slerp(transform.position, targetPos, cameraSpeed);
+                yield return null;
+            }
         }
     }
     

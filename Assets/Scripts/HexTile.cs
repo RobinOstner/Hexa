@@ -9,6 +9,19 @@ public class HexTile : MonoBehaviour {
 
     public HexTileDisplay hexDisplay;
 
+
+    public List<HexTile> neighbourTiles
+    {
+        get {
+            List<HexTile> neighbours = new List<HexTile>();
+            foreach(HexTileDisplay display in hexDisplay.neighbourTiles)
+            {
+                neighbours.Add(display.hexTile);
+            }
+            return neighbours;
+        }
+    }
+
     // Is this tile the base of the player
     public bool isBaseTile;
 
