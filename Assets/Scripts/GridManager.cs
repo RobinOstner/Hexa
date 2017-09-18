@@ -277,18 +277,12 @@ public class GridManager : MonoBehaviour {
             alreadyTested.Add(currentTile);
         }
 
-        Debug.Log("All Base tiles are connected: " + connected);
-
         if (!connected)
         {
             StopAllCoroutines();
             GameManager.current.InitializeGame();
             Start();
             
-        }
-        else
-        {
-            Debug.Log("One: " + baseOne.gameObject.activeSelf + " Two: " + baseTwo.gameObject.activeSelf);
         }
     }
 

@@ -164,7 +164,7 @@ public class HexTileDisplay : MonoBehaviour {
         hexDisplayText.text += hexTile.attacking ? " -> " + hexTile.unitsAfterMovement : "";
 
         // Set the Color accordingly
-        Color newColor = hexTile.isBaseTile ? GetColorBasedOnTeam() /10f : GetColorBasedOnTeam() / 2f;
+        Color newColor = hexTile.isBaseTile ? Color.black : GetColorBasedOnTeam() / 3f;
         // Adjust for Base Color
         if (hexTile.isBaseTile)
         {
