@@ -39,18 +39,25 @@ public class CameraBehaviour : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        //MoveCameraToMiddle();
 
-        if (pinchZoomMoveEnabled)
+        // Camera can only be controlled if Player is actually in Control
+        if (GameManager.current.playerControl)
         {
-            PinchMoveZoom();
+            if (pinchZoomMoveEnabled)
+            {
+                PinchMoveZoom();
+            }
+            else
+            {
+                AlternateMoveZoom();
+            }
+
+            MoveZoomConstraints();
         }
         else
         {
-            AlternateMoveZoom();
+            MoveCameraToMiddle();
         }
-
-        MoveZoomConstraints();
 	}
 
     // Moves Camera to the Middle of the Grid
@@ -73,6 +80,26 @@ public class CameraBehaviour : MonoBehaviour {
 
         // Assign Position
         transform.position = movedPosition;
+    }
+
+    public IEnumerator MoveCameraToLast(Vector3 targetPos)
+    {
+        bool touching = true;
+
+        while((transform.position - targetPos).magnitude >= .01f)
+        {
+            if(Input.touchCount == 0)
+            {
+                touching = false;
+            }
+            if (!touching && Input.touchCount > 0)
+            {
+                break;
+            }
+
+            transform.position = Vector3.Slerp(transform.position, targetPos, cameraSpeed);
+            yield return null;
+        }
     }
     
     // Move the Camera with 2 Fingers

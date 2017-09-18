@@ -31,6 +31,16 @@ public class GameManager : MonoBehaviour {
         }
     }
 
+    // Can the player do something?
+    public bool playerControl;
+
+    // NextTeamButton
+    public GameObject nextTeamButton;
+
+    // Next Team Screen
+    public GameObject nextTeamScreen;
+    private Text nextTeamText;
+
     // The text that appears when one person was defeated
     public GameObject endScreen;
     private Text endScreenText;
@@ -40,13 +50,14 @@ public class GameManager : MonoBehaviour {
         current = this;
 
         endScreenText = endScreen.GetComponent<Text>();
+        nextTeamText = nextTeamScreen.GetComponent<Text>();
 
         InitializeGame();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		
+        nextTeamButton.SetActive(playerControl);
 	}
 
     // Initializes The Game
@@ -95,6 +106,12 @@ public class GameManager : MonoBehaviour {
     public void NextTeam()
     {
         GridManager.current.FinishAttackForAllTiles(true);
+        
+        // Save Camera Position
+        if (rounds >= 1)
+        {
+            activePlayer.lastCameraPos = CameraBehaviour.current.gameObject.transform.position;
+        }
 
         // Cycle Through Teams
         activeTeam++;
@@ -106,8 +123,26 @@ public class GameManager : MonoBehaviour {
         }
 
         activePlayer.FinishTurn();
+
+        StartCoroutine(PlayerChange());
     }
 
+    public IEnumerator PlayerChange()
+    {
+        playerControl = false;
+
+        nextTeamText.text = activeTeam.ToString().ToUpper() + " IS NEXT";
+        nextTeamScreen.SetActive(true);
+
+        yield return new WaitForSeconds(1);
+
+        yield return new WaitUntil(() => Input.touchCount > 0);
+
+        nextTeamScreen.SetActive(false);
+        playerControl = true;
+
+        StartCoroutine(CameraBehaviour.current.MoveCameraToLast(activePlayer.lastCameraPos));
+    }
 
     // Show the End Screens
     public IEnumerator Defeat(Player defeatedPlayer)
@@ -119,6 +154,8 @@ public class GameManager : MonoBehaviour {
         GridManager.current.DisableHTDT();
 
         yield return null;
+
+        yield return new WaitUntil(() => Input.touchCount == 0);
 
         yield return new WaitUntil(() => Input.anyKeyDown);
 

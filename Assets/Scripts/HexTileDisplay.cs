@@ -88,22 +88,25 @@ public class HexTileDisplay : MonoBehaviour {
         Color normalColor = GridManager.current.tileColors.normal;
         Color activeColor = GetColorBasedOnTeam();
 
-        // Active Team
-        if(team == GameManager.current.activeTeam)
+        if (GameManager.current.playerControl)
         {
-            normalColor = activeColor;
-        }
+            // Active Team
+            if (team == GameManager.current.activeTeam)
+            {
+                normalColor = activeColor;
+            }
 
-        // Other Team but Neighbouring
-        if(team != GameManager.current.activeTeam && team != GameManager.Teams.Null && isNeighbourToActive)
-        {
-            normalColor = activeColor / 2;
-        }
+            // Other Team but Neighbouring
+            if (team != GameManager.current.activeTeam && team != GameManager.Teams.Null && isNeighbourToActive)
+            {
+                normalColor = activeColor / 2;
+            }
 
-        // Tile is Selected
-        if (selected)
-        {
-            normalColor *= 2;
+            // Tile is Selected
+            if (selected)
+            {
+                normalColor *= 2;
+            }
         }
 
         // Set the color
@@ -186,7 +189,7 @@ public class HexTileDisplay : MonoBehaviour {
     // Is the tile color visible for the currently active player
     private bool isVisible()
     {
-        return (isNeighbourToActive && team != GameManager.Teams.Null) || team == GameManager.current.activeTeam;
+        return GameManager.current.playerControl && ((isNeighbourToActive && team != GameManager.Teams.Null) || team == GameManager.current.activeTeam);
     }
 
     // Disable the Text Display

@@ -45,6 +45,14 @@ public class GridManager : MonoBehaviour {
     // Creates a new Grid
     public void CreateGrid()
     {
+        // Sync with Settings
+        gridSize = Settings.GridSize;
+        missingTilesPercent = Settings.MissingPercent;
+
+        // Check if Settings were NULL/Zero (Mainly so that scene starts)
+        gridSize = (gridSize < 2) ? 10 : gridSize;
+        missingTilesPercent = (missingTilesPercent < 0) ? 30 : missingTilesPercent;
+
         if (tiles != null)
         {
             // Deleting the old Grid
@@ -150,20 +158,29 @@ public class GridManager : MonoBehaviour {
 
         int missingTilesCount = (int)(gridSize * gridSize * (missingTilesPercent / 100f));
 
+        missingTilesCount = Mathf.Min(missingTilesCount, gridSize * gridSize - 2);
+
         for(int i=0; i < missingTilesCount; i++)
         {
             // Receive a random Tile
             int index = Random.Range(0, gridSize * gridSize);
             HexTile tile = tiles[index / gridSize, index % gridSize].hexTile;
 
-            tile.gameObject.SetActive(false);
+            if (tile.gameObject.activeSelf)
+            {
+                tile.gameObject.SetActive(false);
+            }
+            else
+            {
+                i--;
+            }
         }
     }
 
     // Assigns a random Base Tile to each Player
     public IEnumerator AssignBaseTiles()
     {
-        // Wait 2 Frames for Randomization
+        // Wait 3 Frames for Randomization
         yield return null;
         yield return null;
         yield return null;
@@ -187,7 +204,7 @@ public class GridManager : MonoBehaviour {
                 foundFree = !baseTiles.Contains(baseTile);
             }
 
-            Debug.Log("Active: " + baseTile.gameObject.activeSelf);
+            player.lastCameraPos = new Vector3(baseTile.gameObject.transform.position.x + 0.5f, 4, baseTile.transform.position.z + 0.5f);
 
             // Add new BaseTile to List
             baseTiles.Add(baseTile);

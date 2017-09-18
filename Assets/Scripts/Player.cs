@@ -10,7 +10,11 @@ public class Player : MonoBehaviour {
     // Identification (Player Number)
     public int ID;
 
+    // The Players Team
     public GameManager.Teams team;
+
+    // The last position of the camera while the player was in control
+    public Vector3 lastCameraPos;
 
 	// Use this for initialization
 	void Start ()
