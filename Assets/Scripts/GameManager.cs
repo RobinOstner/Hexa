@@ -42,6 +42,7 @@ public class GameManager : MonoBehaviour {
     private Text nextTeamText;
 
     // The text that appears when one person was defeated
+    private bool finished;
     public GameObject endScreen;
     private Text endScreenText;
 
@@ -63,6 +64,7 @@ public class GameManager : MonoBehaviour {
     // Initializes The Game
     public void InitializeGame()
     {
+        finished = false;
         rounds = 0;
 
         while(players.Count > 0)
@@ -129,31 +131,41 @@ public class GameManager : MonoBehaviour {
 
     public IEnumerator PlayerChange()
     {
-        playerControl = false;
+        if (!finished)
+        {
 
-        nextTeamText.text = activeTeam.ToString().ToUpper() + " IS NEXT";
-        nextTeamScreen.SetActive(true);
+            playerControl = false;
 
-        yield return new WaitForSeconds(1);
+            nextTeamText.text = activeTeam.ToString().ToUpper() + " IS NEXT";
+            nextTeamScreen.SetActive(true);
 
-        yield return new WaitUntil(() => Input.touchCount > 0);
+            yield return new WaitForSeconds(1);
 
-        nextTeamScreen.SetActive(false);
-        playerControl = true;
+            yield return new WaitUntil(() => Input.touchCount > 0);
 
-        StartCoroutine(CameraBehaviour.current.MoveCameraToLast(activePlayer.lastCameraPos));
+            nextTeamScreen.SetActive(false);
+            playerControl = true;
+
+            StartCoroutine(CameraBehaviour.current.MoveCameraToLast(activePlayer.lastCameraPos));
+        }
     }
 
     // Show the End Screens
     public IEnumerator Defeat(Player defeatedPlayer)
     {
+        finished = true;
+
         endScreenText.text = defeatedPlayer.team.ToString().ToUpper() + " WAS DEFEATED";
 
         endScreenText.gameObject.SetActive(true);
 
         GridManager.current.DisableHTDT();
 
-        yield return null;
+        Debug.Log("Wait 1 Second!");
+
+        yield return new WaitForSeconds(1);
+
+        Debug.Log("Finished!");
 
         yield return new WaitUntil(() => Input.touchCount == 0);
 

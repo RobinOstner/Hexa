@@ -74,7 +74,7 @@ public class Player : MonoBehaviour {
         }
         else
         {
-            if (GameManager.current.rounds > 2)
+            if (GameManager.current.rounds > 0)
             {
                 Debug.Log("Defeat!");
                 StartCoroutine(GameManager.current.Defeat(this));
