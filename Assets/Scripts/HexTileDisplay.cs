@@ -105,9 +105,12 @@ public class HexTileDisplay : MonoBehaviour {
             // Tile is Selected
             if (selected)
             {
-                normalColor *= 2;
+                normalColor *= 3f;
             }
         }
+        
+        // Make sure it is displayed correctly because of alpha channel
+        normalColor = new Color(normalColor.r, normalColor.g, normalColor.b, 1);
 
         // Set the color
         spriteMaterial.color = normalColor;
