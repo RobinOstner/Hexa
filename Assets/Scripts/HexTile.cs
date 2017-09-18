@@ -96,7 +96,7 @@ public class HexTile : MonoBehaviour {
     // Tests itself whether or not it's free
     public void CheckFree()
     {
-        if(!attacking && units == 0)
+        if(!attacking && units <= 0)
         {
             GameManager.current.ResetTile(this);
         }

@@ -25,6 +25,8 @@ public class AI : MonoBehaviour {
     {
         FindNeighbourTiles();
         ConquerTiles();
+
+        GameManager.current.NextTeam();
     }
 
     // Try To Conquer as many Tiles as possible
@@ -67,7 +69,11 @@ public class AI : MonoBehaviour {
                     }
                     else
                     {
-
+                        if (neighbour.team != playerComponent.team)
+                        {
+                            neighbour.units--;
+                            ownTile.units--;
+                        }
                     }
                 }
             }
@@ -83,7 +89,7 @@ public class AI : MonoBehaviour {
         {
             foreach (HexTile neighbour in ownTile.neighbourTiles)
             {
-                if (!neighbourTiles.Contains(neighbour))
+                if (neighbour.gameObject.activeSelf && !neighbourTiles.Contains(neighbour))
                 {
                     neighbourTiles.Add(neighbour);
                 }
