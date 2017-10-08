@@ -17,6 +17,10 @@ public class Player : MonoBehaviour {
     // List with all Tiles of this player
     public List<HexTile> tiles;
 
+    public HexTile targetTile;
+    // All Active Movements
+    public List<Movement> movements;
+
     // Identification (Player Number)
     public int ID;
 
@@ -37,8 +41,20 @@ public class Player : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		
-	}
+        ShowAllPaths();
+    }
+
+    // Highlights All Paths
+    void ShowAllPaths()
+    {
+        if (GameManager.current.activePlayer == this)
+        {
+            foreach (Movement mov in movements)
+            {
+                mov.HighlightPath();
+            }
+        }
+    }
 
     // Change Own Color according to ID
     void SetTeamColor()
@@ -70,11 +86,7 @@ public class Player : MonoBehaviour {
             int tileCount = tiles.Count;
             if (tileCount >= 0)
             {
-                int baseUnits = tiles[0].units;
-
-                int gainedUnits = Mathf.Max(tileCount / 3, 1) + Mathf.Min(baseUnits, tileCount);
-
-                tiles[0].units += gainedUnits;
+                tiles[0].units += CalculateUnitsGained();
             }
 
             foreach (HexTile tile in tiles)
@@ -86,14 +98,53 @@ public class Player : MonoBehaviour {
             {
                 aiComponent.StartTurn();
             }
+
+            // Movement Test
+            //StartMovement(tiles[0].units / 2);
+            for (int i = movements.Count - 1; i>= 0; i--)
+            {
+                Movement mov = movements[i];
+                if (mov.path.Count <= 1 || mov.path[0].team != team)
+                {
+                    movements.RemoveAt(i);
+                }
+                else
+                {
+                    mov.Move();
+                    if (mov.path.Count <= 1 || mov.path[0].team != team)
+                    {
+                        mov.path[0].movementsFromTile.Remove(mov);
+                        movements.RemoveAt(i);
+                    }
+                }
+            }
         }
         else
         {
             if (GameManager.current.rounds > 0)
             {
-                Debug.Log("Defeat!");
                 StartCoroutine(GameManager.current.Defeat(this));
             }
+        }
+    }
+
+    // Calculates the amount of units the player receives
+    public int CalculateUnitsGained()
+    {
+        int tileCount = tiles.Count;
+
+        int baseUnits = tiles[0].units;
+
+        int gainedUnits = Mathf.Max(tileCount / 3, 1) + Mathf.Min(baseUnits, tileCount);
+
+        return gainedUnits;
+    }
+
+    public void StartMovement(int units, HexTile start, HexTile target)
+    {
+        if(targetTile != null)
+        {
+            movements.Add(new Movement(units, Pathfinding.CalculatePath(start, target), team));
         }
     }
 }

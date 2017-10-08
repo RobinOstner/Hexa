@@ -79,18 +79,20 @@ public class GameManager : MonoBehaviour {
         players.Add(newPlayer);
         newPlayer = Instantiate(playerPrefab, transform).GetComponent<Player>();
         newPlayer.ID = players.Count + 1;
+        newPlayer.isAI = false;
         players.Add(newPlayer);
     }
 
     // Adds the tile to the player and removes it from other players
-    public void AddTileToPlayer(HexTile tile)
+    public void AddTileToPlayer(HexTile tile, Player player)
     {
-        foreach (Player player in players)
+        foreach (Player otherPlayers in players)
         {
-            player.tiles.Remove(tile);
+            otherPlayers.tiles.Remove(tile);
         }
 
-        players[(int)tile.team - 1].tiles.Add(tile);
+        tile.team = player.team;
+        player.tiles.Add(tile);
     }
 
     // Resets the tile and removes it from all players
@@ -103,13 +105,16 @@ public class GameManager : MonoBehaviour {
 
         // Reset Team to Null
         tile.team = Teams.Null;
+        tile.moveLocked = false;
+        tile.isBaseTile = false;
     }
 
     // Switches to the next Team
     public void NextTeam()
     {
-        GridManager.current.FinishAttackForAllTiles(true);
-        
+        GridManager.current.FinishAttackForAllTiles(InputManager.current.movements);
+        GridManager.current.FinishAllTiles();
+
         // Save Camera Position
         if (rounds >= 1)
         {
@@ -166,11 +171,7 @@ public class GameManager : MonoBehaviour {
 
         GridManager.current.DisableHTDT();
 
-        Debug.Log("Wait 1 Second!");
-
         yield return new WaitForSeconds(1);
-
-        Debug.Log("Finished!");
 
         yield return new WaitUntil(() => Input.touchCount == 0);
 

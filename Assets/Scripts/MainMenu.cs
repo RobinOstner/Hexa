@@ -19,7 +19,7 @@ public class MainMenu : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		
+        ToggleShowAIMovement(false);
 	}
 	
 	// Update is called once per frame
@@ -77,5 +77,10 @@ public class MainMenu : MonoBehaviour {
     {
         Settings.GridSize = GridSize;
         Settings.MissingPercent = MissingPercent;
+    }
+
+    public void ToggleShowAIMovement(bool value)
+    {
+        Settings.ShowAIMovement = value;
     }
 }

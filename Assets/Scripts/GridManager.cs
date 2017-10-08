@@ -47,10 +47,14 @@ public class GridManager : MonoBehaviour {
     {
         // Sync with Settings
         gridSize = Settings.GridSize;
-        missingTilesPercent = Settings.MissingPercent;
+        //missingTilesPercent = Settings.MissingPercent;
 
         // Check if Settings were NULL/Zero (Mainly so that scene starts)
-        gridSize = (gridSize < 2) ? 10 : gridSize;
+        if (gridSize < 2)
+        {
+            Settings.ShowAIMovement = true;
+        }
+        gridSize = (gridSize < 2) ? 5 : gridSize;
         missingTilesPercent = (missingTilesPercent < 0) ? 30 : missingTilesPercent;
 
         if (tiles != null)
@@ -210,10 +214,9 @@ public class GridManager : MonoBehaviour {
             baseTiles.Add(baseTile);
 
             // Change Tile Team & Info
-            baseTile.team = GameManager.current.activeTeam;
             baseTile.isBaseTile = true;
             baseTile.units = 1;
-            GameManager.current.AddTileToPlayer(baseTile);
+            GameManager.current.AddTileToPlayer(baseTile, GameManager.current.activePlayer);
 
             // Cycle Through Teams
             GameManager.current.NextTeam();
@@ -302,44 +305,36 @@ public class GridManager : MonoBehaviour {
     }
 
     // Accepts the change in Units for all tiles
-    public void FinishAttackForAllTiles(bool acceptChange)
+    public void FinishAttackForAllTiles(List<Movement> movements)
     {
         foreach(HexTileDisplay tileDisplay in tiles)
         {
             HexTile tile = tileDisplay.hexTile;
 
-            if (acceptChange)
-            {
-                if (tile.attacking)
-                {
-                    if (tile.units != tile.unitsAfterMovement)
-                    {
-                        if (tile != InputManager.current.selectedHexTile)
-                        {
-                            tile.moveLocked = true;
-                        }
-                        tile.units = tile.unitsAfterMovement;
+            tile.attacking = false;
+            tile.hexDisplay.highlighted = false;
+        }
 
-                        if(tile.units <= 0)
-                        {
-                            tile.isBaseTile = false;
-                        }
-
-                        // Negative Value means that it has been conquered
-                        if (tile.units < 0)
-                        {
-                            tile.team = GameManager.current.activeTeam;
-                            tile.units *= -1;
-                            GameManager.current.AddTileToPlayer(tile);
-                        }
-                    }
-                    tile.attacking = false;
-                }
-            }
-            else
+        foreach(Movement mov in movements)
+        {
+            GameManager.current.activePlayer.movements.Add(mov);
+            mov.Move();
+            if (mov.path.Count <= 1 || mov.path[0].team != GameManager.current.activeTeam)
             {
-                tile.attacking = false;
+                GameManager.current.activePlayer.movements.Remove(mov);
             }
+        }
+
+        InputManager.current.movements = new List<Movement>();
+    }
+
+    // Resets the Move Lock value for all tiles
+    public void FinishAllTiles()
+    {
+        foreach(HexTileDisplay tile in tiles)
+        {
+            tile.hexTile.moveLocked = false;
+            tile.SetBlank();
         }
     }
 }

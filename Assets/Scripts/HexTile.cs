@@ -1,12 +1,15 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HexTile : MonoBehaviour {
+public class HexTile : MonoBehaviour
+{
+    // Pathfinding Discovery Record
+    public HexTile discoveredBy;
 
     // Current Team
     public GameManager.Teams team;
-
     public HexTileDisplay hexDisplay;
 
 
@@ -22,6 +25,7 @@ public class HexTile : MonoBehaviour {
         }
     }
 
+
     // Is this tile the base of the player
     public bool isBaseTile;
 
@@ -33,58 +37,82 @@ public class HexTile : MonoBehaviour {
     // Already moved the Units on this Tile?
     public bool moveLocked;
 
+    public List<Movement> movementsFromTile;
+
     // Is the player attacking/moving with this tile?
     public bool attacking;
 
     // Use this for initialization
     void Start() {
         hexDisplay = GetComponent<HexTileDisplay>();
+        movementsFromTile = new List<Movement>();
     }
 
     // Update is called once per frame
     void Update() {
+        /* Height Change
+        transform.localScale = new Vector3(1, 1 + units/100f, 1);
+        transform.position = new Vector3(transform.position.x, units/100f/2f, transform.position.z);
+        */
+        if (!hexDisplay.selected)
+        {
+            unitsAfterMovement = 0;
+        }
+        if(hexDisplay.selected && !attacking)
+        {
+            unitsAfterMovement = 0;
+        }
+
+        hexDisplay.highlighted = false;
         CheckFree();
     }
 
     // Moves ALL Units from this tile to the other Tile
-    public void MoveUnitsToTile(HexTile otherTile)
+    public bool MoveUnitsToTile(HexTile otherTile, int Amount)
     {
-        moveLocked = true;
+        otherTile.moveLocked = otherTile.team == GameManager.current.activeTeam;
+
+        // Not possible if Amount is bigger than available units
+        if(Amount > units)
+        {
+            return false;
+        }
 
         // Same Team
         if (team == otherTile.team)
         {
-            otherTile.moveLocked = true;
-            otherTile.units += units;
-            units = 0;
+            otherTile.units += Amount;
+            units -= Amount;
+
+            return true;
         }
         // Other Team
         if (otherTile.team != GameManager.Teams.Null)
         {
-            int otherUnitsSave = otherTile.units;
-            otherTile.units -= Mathf.Min(units, otherTile.units);
-            units -= Mathf.Min(otherUnitsSave, units);
+            otherTile.units -= Amount;
+            units -= Amount;
 
-            if (otherTile.units == 0 && units > 0)
+            // Conquered other Tile
+            if (otherTile.units < 0)
             {
-                otherTile.team = team;
-                GameManager.current.AddTileToPlayer(otherTile);
+                GameManager.current.AddTileToPlayer(otherTile, GameManager.current.activePlayer);
 
-                otherTile.units = units;
-                units = 0;
+                otherTile.units *= -1;
             }
+
+            return true;
         }
         // Empty HexTile
         if (otherTile.team == GameManager.Teams.Null)
         {
-            otherTile.moveLocked = true;
+            GameManager.current.AddTileToPlayer(otherTile, GameManager.current.activePlayer);
 
-            otherTile.team = team;
-            GameManager.current.AddTileToPlayer(otherTile);
-
-            otherTile.units = units;
-            units = 0;
+            otherTile.units = Amount;
+            units -= Amount;
+            return true;
         }
+
+        return false;
     }
 
     // Change Visuals after tapped
@@ -106,4 +134,5 @@ public class HexTile : MonoBehaviour {
     {
         return hexDisplay.neighbourTiles.Contains(otherTile.hexDisplay);
     }
+
 }

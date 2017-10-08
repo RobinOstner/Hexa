@@ -64,7 +64,7 @@ public class CameraBehaviour : MonoBehaviour {
     void MoveCameraToMiddle()
     {
         // Get the Actual Grid Size
-        int gridSize = GridManager.current.GetActualGridSize();
+        //int gridSize = GridManager.current.GetActualGridSize();
 
         // Calculate Position
         /*
@@ -73,7 +73,7 @@ public class CameraBehaviour : MonoBehaviour {
         targetPosition = Vector3.right * posX + Vector3.forward * posY + Vector3.up*cameraHeight/2f + Vector3.up*gridSize;
         */
 
-        targetPosition = GridManager.current.GetMidTile().transform.position + Vector3.up * cameraHeight + Vector3.up * Vector3.Magnitude(GridManager.current.GetMidTile().transform.position);
+        targetPosition = GridManager.current.GetMidTile().transform.position + new Vector3( 0.5f, 0, 0.5f) + Vector3.up * cameraHeight + Vector3.up * Vector3.Magnitude(GridManager.current.GetMidTile().transform.position);
 
         // Slerping of Position
         Vector3 movedPosition = Vector3.Slerp(transform.position, targetPosition, cameraSpeed);

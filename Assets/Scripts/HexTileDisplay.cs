@@ -26,12 +26,18 @@ public class HexTileDisplay : MonoBehaviour {
     // Is the tile neighbour to one of the active Tiles
     public bool isNeighbourToActive;
 
+    // Is invisible/blank
+    private bool isBlank;
+
     // Is mouse hovering?
     public bool hovering;
     public float hoveringShine;
 
     // Is Tile selected?
     public bool selected;
+
+    // Is the Tile being highlighted?
+    public bool highlighted;
 
     // Position of the Display
     public float canvasPosX, canvasPosY;
@@ -59,11 +65,21 @@ public class HexTileDisplay : MonoBehaviour {
     }
 
     // Update is called once per frame
-    void Update () {
-        SetColor();
-        CalculateTextCanvasPos();
-        UpdateTextDisplay();
+    void Update ()
+    {
+        team = hexTile.team;
         CheckNeighbouring();
+        if (highlighted || isVisible())
+        {
+            isBlank = false;
+            CalculateTextCanvasPos();
+            UpdateTextDisplay();
+            SetColor();
+        }
+        else
+        {
+            if (!isBlank) { SetBlank(); }
+        }
     }
 
     void OnDestroy()
@@ -82,11 +98,9 @@ public class HexTileDisplay : MonoBehaviour {
     // Set the color according to current state
     private void SetColor()
     {
-        team = hexTile.team;
-
         // Reset Color to normal
         Color normalColor = GridManager.current.tileColors.normal;
-        Color activeColor = GetColorBasedOnTeam();
+        Color activeColor = GetColorBasedOnTeam(false);
 
         if (GameManager.current.playerControl)
         {
@@ -105,7 +119,17 @@ public class HexTileDisplay : MonoBehaviour {
             // Tile is Selected
             if (selected)
             {
-                normalColor *= 3f;
+                normalColor *= 4f;
+            }
+            // Tile is Highlighted && team != GameManager.current.activePlayer.team
+            if (highlighted)
+            {
+                normalColor *= 2f;
+            }
+
+            if (hexTile.moveLocked)
+            {
+                normalColor /= 2f;
             }
         }
         
@@ -116,29 +140,54 @@ public class HexTileDisplay : MonoBehaviour {
         spriteMaterial.color = normalColor;
     }
 
-    // Returns the Color of the Active Team
-    public Color GetColorBasedOnTeam()
+    // No Text & No Color
+    public void SetBlank()
     {
-        switch (team)
+        isBlank = true;
+        spriteMaterial.color = GridManager.current.tileColors.normal;
+        hexDisplayText.text = "";
+    }
+
+    // Returns the Color of the Active Team
+    public Color GetColorBasedOnTeam(bool defaultOption)
+    {
+        if (!defaultOption)
         {
-            case GameManager.Teams.Gold:
-                return GridManager.current.tileColors.selectedGold;
-            case GameManager.Teams.Blue:
-                return GridManager.current.tileColors.selectedBlue;
-            case GameManager.Teams.Red:
-                return GridManager.current.tileColors.selectedRed;
-            default:
-                switch (GameManager.current.activeTeam)
-                {
-                    case GameManager.Teams.Gold:
-                        return GridManager.current.tileColors.selectedGold;
-                    case GameManager.Teams.Blue:
-                        return GridManager.current.tileColors.selectedBlue;
-                    case GameManager.Teams.Red:
-                        return GridManager.current.tileColors.selectedRed;
-                    default:
-                        return Color.white;
-                }
+            switch (team)
+            {
+                case GameManager.Teams.Gold:
+                    return GridManager.current.tileColors.selectedGold;
+                case GameManager.Teams.Blue:
+                    return GridManager.current.tileColors.selectedBlue;
+                case GameManager.Teams.Red:
+                    return GridManager.current.tileColors.selectedRed;
+                default:
+                    switch (GameManager.current.activeTeam)
+                    {
+                        case GameManager.Teams.Gold:
+                            return GridManager.current.tileColors.selectedGold;
+                        case GameManager.Teams.Blue:
+                            return GridManager.current.tileColors.selectedBlue;
+                        case GameManager.Teams.Red:
+                            return GridManager.current.tileColors.selectedRed;
+                        default:
+                            return Color.white;
+                    }
+            }
+        }
+        else
+        {
+            switch (GameManager.current.activeTeam)
+            {
+                case GameManager.Teams.Gold:
+                    return GridManager.current.tileColors.selectedGold;
+                case GameManager.Teams.Blue:
+                    return GridManager.current.tileColors.selectedBlue;
+                case GameManager.Teams.Red:
+                    return GridManager.current.tileColors.selectedRed;
+                default:
+                    return Color.white;
+            }
         }
     }
 
@@ -159,12 +208,30 @@ public class HexTileDisplay : MonoBehaviour {
     public void UpdateTextDisplay()
     {
         // Is the Tile even visible?
-        hexDisplayText.text = isVisible() ? "" + hexTile.units : "";
+        if (isVisible()) {
+            hexDisplayText.text = "" + hexTile.units;
+        }
+        else
+        {
+            if (highlighted && GameManager.current.playerControl)
+            {
+                hexDisplayText.text = "" + hexTile.unitsAfterMovement;
+            }
+            else
+            {
+                hexDisplayText.text = "";
+            }
+        }
 
         hexDisplayText.text += hexTile.attacking ? " -> " + hexTile.unitsAfterMovement : "";
+        
+        if (isVisible() && highlighted && hexTile.attacking)
+        {
+            hexDisplayText.text = hexTile.units + " -> " + hexTile.units;
+        }
 
         // Set the Color accordingly
-        Color newColor = hexTile.isBaseTile ? Color.black : GetColorBasedOnTeam() / 3f;
+        Color newColor = hexTile.isBaseTile && !highlighted ? Color.black : GetColorBasedOnTeam(highlighted) / 3f;
         // Adjust for Base Color
         if (hexTile.isBaseTile)
         {

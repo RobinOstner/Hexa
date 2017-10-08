@@ -24,6 +24,8 @@ public class InputManager : MonoBehaviour {
     
     public HexTile selectedHexTile;
 
+    public List<Movement> movements;
+
     //**Tapping**
     // Total Touch Time
     public float totalTouchTime;
@@ -45,6 +47,11 @@ public class InputManager : MonoBehaviour {
         if (GameManager.current.playerControl && !GameManager.current.activePlayer.isAI)
         {
             CheckTap();
+
+            foreach (Movement mov in movements)
+            {
+                mov.HighlightPath();
+            }
         }
 	}
 
@@ -153,7 +160,7 @@ public class InputManager : MonoBehaviour {
                 }
                 else
                 {
-                    GridManager.current.FinishAttackForAllTiles(true);
+                    GridManager.current.FinishAttackForAllTiles(movements);
                 }
             }
         }
@@ -182,12 +189,13 @@ public class InputManager : MonoBehaviour {
         // Selected HexTile should stay selected
         selectedHexTile.SetSelected(true);
 
-        // Does the selected tile even have enough units to keep moving
-        if (selectedHexTile.unitsAfterMovement > 0 && selectedHexTile.IsNeighbourTo(tappedHexTile))
+        // Does the selected tile even have enough units to keep moving || && selectedHexTile.IsNeighbourTo(tappedHexTile)
+        if (selectedHexTile.unitsAfterMovement > 0)
         {
             // Selected looses one Unit
             selectedHexTile.unitsAfterMovement--;
 
+            /*
             // Activate TappedHexTile if it's not already activated/initialized
             if (!tappedHexTile.attacking)
             {
@@ -202,13 +210,16 @@ public class InputManager : MonoBehaviour {
                 if (tappedHexTile.team == GameManager.Teams.Null)
                 {
                     tappedHexTile.team = selectedHexTile.team;
-                    GameManager.current.AddTileToPlayer(tappedHexTile);
+                    GameManager.current.AddTileToPlayer(tappedHexTile, GameManager.current.activePlayer);
                 }
             }
             else
             {
                 tappedHexTile.unitsAfterMovement--;
             }
+            */
+
+            movements.Add(new Movement(1, Pathfinding.CalculatePath(selectedHexTile, tappedHexTile), GameManager.current.activeTeam));
         }
     }
 
@@ -242,7 +253,7 @@ public class InputManager : MonoBehaviour {
                 else
                 {
                     // Long Press on selected Tile when in Attack Mode cancels all operations
-                    GridManager.current.FinishAttackForAllTiles(false);
+                    GridManager.current.FinishAttackForAllTiles(new List<Movement>());
                 }
             }
         }
