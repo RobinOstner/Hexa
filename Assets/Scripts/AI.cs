@@ -5,38 +5,43 @@ using UnityEngine;
 public class AI : MonoBehaviour {
 
     // The attached Player Component
+    [HideInInspector]
     public Player playerComponent;
 
-    // Possible AI-Modes
-    // Conquering: Try to get the the most tiles
-    private enum Modes { Idle, Conquering }
-    // Current Mode: What Strategy is currently being played
-    private Modes mode;
+    // All Possible Strategies
+    public enum Strategies { Null, Conquer, Defend }
 
-    // All Tiles bordering the AIs Tiles
-    public List<HexTile> neighbourTiles;
-    // Is any of the neighbouring tiles an enemy tile?
-    public bool enemySpotted;
+    // Currently played Strategy
+    public Strategies currentStrategy;
 
-    // Priority List For Conquering
-    public List<HexTile> priorityConquer;
+    // All Bordering Tiles
+    public List<HexTile> borderTiles;
+    public List<HexTile> hostileBorderTiles;
 
 	// Use this for initialization
 	void Start () {
-        priorityConquer = new List<HexTile>();
+
 	}
 	
 	// Update is called once per frame
 	void Update () {
-
+        if(GameManager.current.activePlayer == playerComponent)
+        {
+            foreach(HexTile tile in borderTiles)
+            {
+                tile.hexDisplay.highlighted = true;
+            }
+        }
 	}
 
     // Starts the AIs Turn
     public void StartTurn()
     {
-        FindNeighbourTiles();
-        SelectMode();
-        StartStrategy();
+        FindBorder();
+
+        SelectStrategy();
+
+        ExecuteStrategy();
 
         // Skip if movement is hidden
         if (!Settings.ShowAIMovement)
@@ -44,274 +49,143 @@ public class AI : MonoBehaviour {
             GameManager.current.NextTeam();
         }
     }
-
-    // Selects the Mode/Strategy for this round
-    private void SelectMode()
+    
+    // Checks the Border of all Tiles
+    public void FindBorder()
     {
-        mode = Modes.Idle;
+        borderTiles = new List<HexTile>();
+        hostileBorderTiles = new List<HexTile>();
 
-        if (!enemySpotted)
+        foreach(HexTile tile in playerComponent.tiles)
         {
-            mode = Modes.Conquering;
-        }
-    }
-
-    // Starts the Strategy for this round
-    private void StartStrategy()
-    {
-        switch (mode)
-        {
-            case Modes.Conquering:
-                ConquerTiles();
-                break;
-            default:
-                ConquerTiles();
-                break;
-        }
-    }
-
-    // Try To Conquer as many empty Tiles as possible
-    private void ConquerTiles()
-    {
-        // All the feeders
-        List<HexTile> feeders = new List<HexTile>();
-
-        // Try to feed all prios first
-        for(int i=0; i<priorityConquer.Count; i++)
-        {
-            HexTile prioTile = priorityConquer[i];
-            HexTile feederTile = TryFeed(prioTile, 1);
-
-            // Remove from PrioQueue if fed
-            if(feederTile != null)
+            foreach(HexTile neighbour in tile.neighbourTiles)
             {
-                priorityConquer.RemoveAt(i);
-                i--;
-                neighbourTiles.Add(feederTile);
+                if(neighbour.gameObject.activeSelf && neighbour.team != playerComponent.team)
+                {
+                    borderTiles.Add(neighbour);
+
+                    if(neighbour.team != GameManager.Teams.Null)
+                    {
+                        hostileBorderTiles.Add(neighbour);
+                    }
+                }
             }
         }
+    }
 
-        // Counts all feeders
-        int feederCount = 0;
+    // Selects a Strategy based on the current Situation
+    private void SelectStrategy()
+    {
+        // All Metrics
+        bool foundHostile = false;
 
-        // Counts the maximum amount of fed tiles
-        int maxPossible = 0;
+        // EVALUATION
+        // Check if any borderTiles are hostile
+        if(hostileBorderTiles.Count > 0) { foundHostile = true; }
         
-        while(neighbourTiles.Count > 0)
+        // Actually Select a Strategy
+        if (foundHostile)
         {
-            // Select Random Tile
-            int random = Random.Range(0, neighbourTiles.Count);
-
-            HexTile neighbour = neighbourTiles[random];
-
-            // Try To Feed the tile
-            HexTile feederTile = TryFeed(neighbour, 1);
-
-            if (feederTile != null)
-            {
-                feeders.Add(feederTile);
-                feederCount++;
-            }
-
-            maxPossible++;
-
-            // Remove Tile
-            neighbourTiles.RemoveAt(random);
-        }
-
-        // Try to Refill all feeders
-        while (feeders.Count > 0)
-        {
-            for (int i = 0; i < feeders.Count; i++)
-            {
-                // Only refeed if no more units
-                if (feeders[0].units == 0 && !feeders[0].isBaseTile)
-                {
-                    // Try to feed
-                    HexTile feederTile = TryFeed(feeders[0], 1);
-
-                    // Found Feeder
-                    if (feederTile != null)
-                    {
-                        feeders.Add(feederTile);
-                        feederCount++;
-                    }
-                    else
-                    {
-                        if (!priorityConquer.Contains(feeders[0]))
-                        {
-                            priorityConquer.Add(feeders[0]);
-                        }
-                    }
-
-                    maxPossible++;
-                }
-
-                // Remove original feeder because it has either been filled or it cannot be filled or it doesn't have to be filled
-                feeders.RemoveAt(0);
-            }
-        }
-    }
-
-    // Try To Feed The Given Tile
-    private HexTile TryFeed(HexTile tile, int amount)
-    {
-        // Feeder Tile is the one that provides the unit for this tile
-        HexTile feederTile = null;
-        bool foundFeeder = false;
-
-        // Copy neighbour list
-        List<HexTile> neighbours = new List<HexTile>();
-        foreach(HexTile neighbour in tile.neighbourTiles)
-        {
-            neighbours.Add(neighbour);
-        }
-
-        foreach (HexTile neighbour in neighbours)
-        {
-            if (neighbour.team == playerComponent.team && !neighbour.moveLocked && UnitsToSpare(neighbour) >= amount)
-            {
-                if(feederTile == null)
-                {
-                    // Feeder found
-                    feederTile = neighbour;
-                    foundFeeder = true;
-                    break;
-                }
-                if (feederTile != null && UnitsToSpare(feederTile) < UnitsToSpare(neighbour))
-                {
-                    // Feeder found
-                    feederTile = neighbour;
-                    foundFeeder = true;
-                }
-            }
-        }
-
-        if (foundFeeder)
-        {
-            // Move 1 Unit from feeder to neighbour
-            feederTile.MoveUnitsToTile(tile, amount);
-
-            // Return The Feeder Tile
-            return feederTile;
-        }
-
-        return null;
-    }
-
-    // Calculates the amount of units this particular tile can/should give
-    public int UnitsToSpare(HexTile tile)
-    {
-        // Base Tiles should keep more
-        if (tile.isBaseTile)
-        {
-            return tile.units - playerComponent.tiles.Count;
+            currentStrategy = Strategies.Defend;
         }
         else
         {
-            // Depends on Mode
-            return tile.units;
+            currentStrategy = Strategies.Conquer;
         }
     }
 
-    // Try To Conquer as many Tiles as possible
-    public IEnumerator ConquerTilesOLD()
+    private void ExecuteStrategy()
     {
-        List<HexTile> playerTiles = new List<HexTile>();
-        foreach (HexTile tile in playerComponent.tiles)
+        switch (currentStrategy)
         {
-            playerTiles.Add(tile);
+            case Strategies.Conquer:
+                Conquer();
+                break;
+            case Strategies.Defend:
+                Defend();
+                break;
+            default:
+                Conquer();
+                break;
+        }
+    }
+
+    // Tries to Conquer as many Tiles as possible
+    private void Conquer()
+    {
+        HexTile baseTile = playerComponent.tiles[0];
+
+        // Remove all already Targeted Tiles
+        foreach(Movement mov in playerComponent.movements)
+        {
+            borderTiles.Remove(mov.path[mov.path.Count - 1]);
         }
 
-        bool movementPossible = true;
-        while (playerComponent.tiles[0].units > playerComponent.tiles.Count && movementPossible)
+
+        Debug.Log(Settings.AIDifficulty);
+        // Diffulty Adjustments
+        int removeTileCount = (int)((borderTiles.Count / 100f) * Settings.AIDifficulty);
+        for(int i=0; i<removeTileCount; i++)
         {
-            yield return null;
+            borderTiles.RemoveAt(Random.Range(0, borderTiles.Count));
+            Debug.Log("REMOVE");
+        }
 
-            movementPossible = false;
-            
-            foreach (HexTile ownTile in playerTiles)
+
+        if (borderTiles.Count > 0)
+        {
+            int factor = (int)((baseTile.units*Settings.AIDifficulty/100f - playerComponent.tiles.Count) / borderTiles.Count);
+
+            while (factor > 0)
             {
-
-                foreach (HexTile neighbour in neighbourTiles)
+                foreach (HexTile target in borderTiles)
                 {
+                    List<HexTile> path = Pathfinding.CalculatePath(baseTile, target);
+                    if (path.Count == 0) { continue; }
 
-                    // Stop if Tile doesn't have units
-                    if (ownTile.units == 0 || ownTile.moveLocked)
-                    {
-                        break;
-                    }
-
-                    movementPossible = true;
-
-                    if (ownTile.isBaseTile && ownTile.units <= playerComponent.tiles.Count)
-                    {
-                        break;
-                    }
-
-                    if (neighbour.IsNeighbourTo(ownTile))
-                    {
-                        if (neighbour.team == GameManager.Teams.Null)
-                        {
-                            neighbour.units++;
-                            neighbour.moveLocked = true;
-                            neighbour.team = playerComponent.team;
-                            GameManager.current.AddTileToPlayer(neighbour, playerComponent);
-
-                            ownTile.units--;
-                        }
-                        else
-                        {
-                            if (neighbour.team != playerComponent.team)
-                            {
-                                neighbour.units--;
-                                ownTile.units--;
-                            }
-                            else
-                            {
-                                neighbour.units++;
-                                ownTile.units--;
-                            }
-                        }
-                    }
+                    Movement mov = new Movement(1, path, playerComponent.team);
+                    playerComponent.movements.Add(mov);
+                    mov.Move();
                 }
+
+                factor--;
+            }
+
+            while (baseTile.units > playerComponent.tiles.Count)
+            {
+                int randomID = Random.Range(0, borderTiles.Count);
+                HexTile target = borderTiles[randomID];
+
+                List<HexTile> path = Pathfinding.CalculatePath(baseTile, target);
+                if (path.Count == 0) { continue; }
+
+                Movement mov = new Movement(1, path, playerComponent.team);
+                playerComponent.movements.Add(mov);
+                mov.Move();
             }
         }
     }
 
-    // Finds all Neighbouring Tiles
-    void FindNeighbourTiles()
+    // Tries to send as many possible units to all hostile Tiles
+    private void Defend()
     {
-        // Reset
-        enemySpotted = false;
+        HexTile baseTile = playerComponent.tiles[0];
+        int factor = (baseTile.units - playerComponent.tiles.Count) / hostileBorderTiles.Count;
 
-        // Reset List
-        neighbourTiles = new List<HexTile>();
-
-        // Loop through all ownTiles
-        foreach (HexTile ownTile in playerComponent.tiles)
+        while (factor > 0)
         {
-            // Loop through all the neighbouring tiles
-            foreach (HexTile neighbour in ownTile.neighbourTiles)
+            foreach (HexTile target in hostileBorderTiles)
             {
-                // Check if active & not already in List/no multiple entries
-                if (neighbour.gameObject.activeSelf && !neighbourTiles.Contains(neighbour) && !priorityConquer.Contains(neighbour))
-                {
-                    neighbourTiles.Add(neighbour);
-                }
+                List<HexTile> path = Pathfinding.CalculatePath(baseTile, target);
+                if (path.Count == 0) { continue; }
 
-                // Check for enemies
-                if(neighbour.team != playerComponent.team && neighbour.team != GameManager.Teams.Null)
-                {
-                    enemySpotted = true;
-                }
+                Movement mov = new Movement(1, path, playerComponent.team);
+                playerComponent.movements.Add(mov);
+                mov.Move();
             }
+
+            factor--;
         }
 
-        // Remove own Tiles
-        foreach (HexTile ownTile in playerComponent.tiles)
-        {
-            neighbourTiles.Remove(ownTile);
-        }
     }
 }

@@ -2,9 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player : MonoBehaviour {
+public class Player : MonoBehaviour
+{
+    // Identification (Player Number)
+    public int ID;
+
+    // The Players Team
+    public GameManager.Teams team;
 
     // The AI-Component attached to the gameobject
+    [HideInInspector]
     public AI aiComponent;
 
     // Is this player AI controlled?
@@ -16,18 +23,12 @@ public class Player : MonoBehaviour {
 
     // List with all Tiles of this player
     public List<HexTile> tiles;
-
-    public HexTile targetTile;
+    
     // All Active Movements
     public List<Movement> movements;
 
-    // Identification (Player Number)
-    public int ID;
-
-    // The Players Team
-    public GameManager.Teams team;
-
     // The last position of the camera while the player was in control
+    [HideInInspector]
     public Vector3 lastCameraPos;
 
 	// Use this for initialization
@@ -76,7 +77,7 @@ public class Player : MonoBehaviour {
         }
     }
 
-    // Finishes the Turn and updates the counts of the Tiles
+    // Starts the Turn and updates the counts of the Tiles
     public void StartTurn()
     {
         if (tiles.Count > 0)
@@ -84,39 +85,20 @@ public class Player : MonoBehaviour {
             tiles[0].GetComponent<HexTile>().isBaseTile = true;
 
             int tileCount = tiles.Count;
-            if (tileCount >= 0)
-            {
-                tiles[0].units += CalculateUnitsGained();
-            }
+            tiles[0].units += CalculateUnitsGained();
 
+            // Unlock All Tiles
             foreach (HexTile tile in tiles)
             {
                 tile.moveLocked = false;
             }
 
+            MoveUnitsOnPaths();
+
+            // AI Movement
             if (isAI)
             {
                 aiComponent.StartTurn();
-            }
-
-            // Movement Test
-            //StartMovement(tiles[0].units / 2);
-            for (int i = movements.Count - 1; i>= 0; i--)
-            {
-                Movement mov = movements[i];
-                if (mov.path.Count <= 1 || mov.path[0].team != team)
-                {
-                    movements.RemoveAt(i);
-                }
-                else
-                {
-                    mov.Move();
-                    if (mov.path.Count <= 1 || mov.path[0].team != team)
-                    {
-                        mov.path[0].movementsFromTile.Remove(mov);
-                        movements.RemoveAt(i);
-                    }
-                }
             }
         }
         else
@@ -135,16 +117,35 @@ public class Player : MonoBehaviour {
 
         int baseUnits = tiles[0].units;
 
-        int gainedUnits = Mathf.Max(tileCount / 3, 1) + Mathf.Min(baseUnits, tileCount);
+        int gainedUnits = Mathf.Max(1, Mathf.Min(baseUnits, tileCount)/3);
 
         return gainedUnits;
     }
 
-    public void StartMovement(int units, HexTile start, HexTile target)
+    private void MoveUnitsOnPaths()
     {
-        if(targetTile != null)
+        // All Movements
+        for (int i = movements.Count - 1; i >= 0; i--)
         {
-            movements.Add(new Movement(units, Pathfinding.CalculatePath(start, target), team));
+            Movement mov = movements[i];
+
+            // Check if Movement still valid
+            if (mov.path.Count <= 1 || mov.path[0].team != team)
+            {
+                mov.path[0].movementsFromTile.Remove(mov);
+                movements.RemoveAt(i);
+            }
+            else
+            {
+                mov.Move();
+
+                // Check if Movement still valid
+                if (mov.path.Count <= 1 || mov.path[0].team != team)
+                {
+                    mov.path[0].movementsFromTile.Remove(mov);
+                    movements.RemoveAt(i);
+                }
+            }
         }
     }
 }

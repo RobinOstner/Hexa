@@ -3,34 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Pathfinding : MonoBehaviour {
-
-    // Start & End Tile of Path
-    public HexTile startTile, endTile;
-    // Distance between Tiles
-    public int distance;
-
-    public List<HexTile> path;
-
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-        CalculatePath(startTile, endTile);
-
-        /*
-        if(path.Count > 0)
-        {
-            foreach(HexTile tile in path)
-            {
-                tile.hexDisplay.highlighted = true;
-            }
-        }
-        */
-	}
-
     // Calculates the shortest Path
     public static List<HexTile> CalculatePath(HexTile start, HexTile end)
     {
@@ -43,7 +15,7 @@ public class Pathfinding : MonoBehaviour {
 
             bool found = false;
 
-            while (!found)
+            while (!found && search.Count > 0)
             {
 
                 // Loop through all Tiles that have to be searched
@@ -84,14 +56,10 @@ public class Pathfinding : MonoBehaviour {
                 }
             }
 
-            /*
-            foreach(HexTile tile in path)
+            if (found)
             {
-                tile.hexDisplay.highlighted = false;
+                return BackTrace(start, end);
             }
-            */
-
-            return BackTrace(start, end);
         }
 
         return new List<HexTile>();

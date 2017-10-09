@@ -9,4 +9,6 @@ public static class Settings
     public static int MissingPercent;
 
     public static bool ShowAIMovement;
+
+    public static int AIDifficulty = 80;
 }

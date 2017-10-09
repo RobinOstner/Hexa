@@ -22,8 +22,10 @@ public class InputManager : MonoBehaviour {
     public bool dragging;
     */
     
+    [HideInInspector]
     public HexTile selectedHexTile;
 
+    [HideInInspector]
     public List<Movement> movements;
 
     //**Tapping**
@@ -85,10 +87,6 @@ public class InputManager : MonoBehaviour {
                     if (totalTouchMovement.magnitude <= tapMovementThreshold)
                     {
                         OnLongPress(touch);
-                    }
-                    else
-                    {
-                        Debug.Log("Swipe! No Action Specified!");
                     }
                 }
 
@@ -192,34 +190,19 @@ public class InputManager : MonoBehaviour {
         // Does the selected tile even have enough units to keep moving || && selectedHexTile.IsNeighbourTo(tappedHexTile)
         if (selectedHexTile.unitsAfterMovement > 0)
         {
-            // Selected looses one Unit
-            selectedHexTile.unitsAfterMovement--;
+            List<HexTile> path = Pathfinding.CalculatePath(selectedHexTile, tappedHexTile);
 
-            /*
-            // Activate TappedHexTile if it's not already activated/initialized
-            if (!tappedHexTile.attacking)
+            if (path.Count > 0)
             {
-                tappedHexTile.attacking = true;
-                tappedHexTile.unitsAfterMovement = tappedHexTile.units;
-            }
+                // Selected looses one Unit
+                selectedHexTile.unitsAfterMovement--;
 
-            // Move Unit to Tapped Tile
-            if (tappedHexTile.team == selectedHexTile.team || tappedHexTile.team == GameManager.Teams.Null)
-            {
-                tappedHexTile.unitsAfterMovement++;
-                if (tappedHexTile.team == GameManager.Teams.Null)
-                {
-                    tappedHexTile.team = selectedHexTile.team;
-                    GameManager.current.AddTileToPlayer(tappedHexTile, GameManager.current.activePlayer);
-                }
+                movements.Add(new Movement(1, path, GameManager.current.activeTeam));
             }
             else
             {
-                tappedHexTile.unitsAfterMovement--;
+                Debug.Log("Path Not Found");
             }
-            */
-
-            movements.Add(new Movement(1, Pathfinding.CalculatePath(selectedHexTile, tappedHexTile), GameManager.current.activeTeam));
         }
     }
 

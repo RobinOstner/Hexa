@@ -47,14 +47,14 @@ public class GridManager : MonoBehaviour {
     {
         // Sync with Settings
         gridSize = Settings.GridSize;
-        //missingTilesPercent = Settings.MissingPercent;
+        missingTilesPercent = Settings.MissingPercent;
 
         // Check if Settings were NULL/Zero (Mainly so that scene starts)
         if (gridSize < 2)
         {
             Settings.ShowAIMovement = true;
         }
-        gridSize = (gridSize < 2) ? 5 : gridSize;
+        gridSize = (gridSize < 2) ? 10 : gridSize;
         missingTilesPercent = (missingTilesPercent < 0) ? 30 : missingTilesPercent;
 
         if (tiles != null)

@@ -79,7 +79,7 @@ public class GameManager : MonoBehaviour {
         players.Add(newPlayer);
         newPlayer = Instantiate(playerPrefab, transform).GetComponent<Player>();
         newPlayer.ID = players.Count + 1;
-        newPlayer.isAI = false;
+        //newPlayer.isAI = false;
         players.Add(newPlayer);
     }
 

@@ -36,11 +36,6 @@ public class Movement {
             path.RemoveAt(0);
 
             path[0].movementsFromTile.Add(this);
-
-            if(path.Count == 1)
-            {
-                path[0].movementsFromTile.Remove(this);
-            }
         }
         else
         {
