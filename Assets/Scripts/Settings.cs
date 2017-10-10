@@ -10,5 +10,5 @@ public static class Settings
 
     public static bool ShowAIMovement;
 
-    public static int AIDifficulty = 80;
+    public static int AIDifficulty;
 }

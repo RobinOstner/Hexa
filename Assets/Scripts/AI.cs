@@ -115,26 +115,25 @@ public class AI : MonoBehaviour {
     {
         HexTile baseTile = playerComponent.tiles[0];
 
+        int difficulty = 100 - Settings.AIDifficulty;
+
         // Remove all already Targeted Tiles
         foreach(Movement mov in playerComponent.movements)
         {
             borderTiles.Remove(mov.path[mov.path.Count - 1]);
         }
-
-
-        Debug.Log(Settings.AIDifficulty);
+        
         // Diffulty Adjustments
-        int removeTileCount = (int)((borderTiles.Count / 100f) * Settings.AIDifficulty);
+        int removeTileCount = (int)((borderTiles.Count / 100f) * difficulty);
         for(int i=0; i<removeTileCount; i++)
         {
             borderTiles.RemoveAt(Random.Range(0, borderTiles.Count));
-            Debug.Log("REMOVE");
         }
 
 
         if (borderTiles.Count > 0)
         {
-            int factor = (int)((baseTile.units*Settings.AIDifficulty/100f - playerComponent.tiles.Count) / borderTiles.Count);
+            int factor = (int)((baseTile.units*difficulty/100f - playerComponent.tiles.Count) / borderTiles.Count);
 
             while (factor > 0)
             {

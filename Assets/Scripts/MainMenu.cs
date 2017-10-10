@@ -10,16 +10,22 @@ public class MainMenu : MonoBehaviour {
     public static MainMenu current;
 
     // The GridSize of a new game
-    public int GridSize = 3;
+    public int GridSize = 5;
     // The Text Object for the Grid Size Display
     public Text GridSizeDisplay;
 
-    public int MissingPercent = 0;
+    public int MissingPercent = 20;
     public Text MissingPercentDisplay;
+
+    public int Difficulty = 20;
+    public Text DifficultyDisplay;
 
 	// Use this for initialization
 	void Start () {
         ToggleShowAIMovement(false);
+        MissingPercent = 20;
+        GridSize = 5;
+        Difficulty = 20;
 	}
 	
 	// Update is called once per frame
@@ -29,6 +35,7 @@ public class MainMenu : MonoBehaviour {
         {
             UpdateGridSizeDisplay();
             UpdateMissingPercentDisplay();
+            UpdateDifficultyDisplay();
         }
         SyncSettings();
 	}
@@ -38,7 +45,6 @@ public class MainMenu : MonoBehaviour {
     {
         Debug.Log("Load Scene 1! Should load the New Game Menu!");
         SceneManager.LoadScene(1);
-        GridSize = 2;
     }
 
     // Starts a new Game
@@ -72,11 +78,22 @@ public class MainMenu : MonoBehaviour {
         MissingPercentDisplay.text = "MISSING: " + Settings.MissingPercent;
     }
 
+    public void ChangeDifficulty(float value)
+    {
+        Difficulty = (int)value;
+    }
+
+    private void UpdateDifficultyDisplay()
+    {
+        DifficultyDisplay.text = "DIFFICULTY: " + Settings.AIDifficulty;
+    }
+
     // Syncs the Settings of the Menu with the actual Settings values
     private void SyncSettings()
     {
         Settings.GridSize = GridSize;
         Settings.MissingPercent = MissingPercent;
+        Settings.AIDifficulty = Difficulty;
     }
 
     public void ToggleShowAIMovement(bool value)
