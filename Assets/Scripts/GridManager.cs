@@ -28,6 +28,8 @@ public class GridManager : MonoBehaviour {
 
     public int missingTilesPercent;
 
+    public List<HexTile> path;
+
 
 	// Use this for initialization
 	void Start () {
@@ -54,7 +56,7 @@ public class GridManager : MonoBehaviour {
         {
             Settings.ShowAIMovement = true;
         }
-        gridSize = (gridSize < 2) ? 10 : gridSize;
+        gridSize = (gridSize < 2) ? 5 : gridSize;
         missingTilesPercent = (missingTilesPercent < 0) ? 30 : missingTilesPercent;
 
         if (tiles != null)
@@ -228,59 +230,13 @@ public class GridManager : MonoBehaviour {
     // Test the connection of all BaseTiles
     public void CheckBaseTilesConnection(List<HexTile> baseTiles)
     {
-        bool connected = false;
-
         // For now only 2 possible Teams/BaseTiles
         HexTile baseOne = baseTiles[0];
         HexTile baseTwo = baseTiles[1];
 
-        // Still to be tested
-        List<HexTile> tilesToTest = new List<HexTile>();
-        tilesToTest.Add(baseOne);
+        path = Pathfinding.CalculatePath(baseOne, baseTwo);
 
-        List<HexTile> alreadyTested = new List<HexTile>();
-
-        // While there are still tiles that haven't been tested
-        while(tilesToTest.Count > 0)
-        {
-            // Pick first tile
-            HexTile currentTile = tilesToTest[0];
-
-            // Only Test if active
-            if (currentTile.gameObject.activeSelf)
-            {
-                // Test if connection was found
-                if (currentTile.IsNeighbourTo(baseTwo))
-                {
-                    connected = true;
-                }
-                else
-                {
-                    // If not add all the neighbours
-                    List<HexTile> neighbours = new List<HexTile>();
-
-                    foreach (HexTileDisplay hexDisplay in currentTile.hexDisplay.neighbourTiles)
-                    {
-                        neighbours.Add(hexDisplay.hexTile);
-                    }
-
-                    // Add all the neighbourtiles that haven't already been tested
-                    foreach (HexTile neighbourTile in neighbours)
-                    {
-                        if (!alreadyTested.Contains(neighbourTile) && !tilesToTest.Contains(neighbourTile))
-                        {
-                            tilesToTest.Add(neighbourTile);
-                        }
-                    }
-                }
-            }
-
-            // Remove Current and add to tested
-            tilesToTest.Remove(currentTile);
-            alreadyTested.Add(currentTile);
-        }
-
-        if (!connected)
+        if (path.Count-2 < gridSize/2)
         {
             StopAllCoroutines();
             GameManager.current.InitializeGame();

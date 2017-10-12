@@ -71,7 +71,7 @@ public class HexTile : MonoBehaviour
     // Moves ALL Units from this tile to the other Tile
     public bool MoveUnitsToTile(HexTile otherTile, int Amount)
     {
-        otherTile.moveLocked = otherTile.team == GameManager.current.activeTeam;
+        otherTile.moveLocked = otherTile.team == GameManager.current.activeTeam || otherTile.team == GameManager.Teams.Null;
 
         // Not possible if Amount is bigger than available units
         if(Amount > units)

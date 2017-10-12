@@ -2,13 +2,24 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class Settings
+public class Testing
 {
+    public static int Round = 0;
+
+    public static int Gold, Blue;
+}
+
+public class Settings
+{
+    //public static Settings current;
+    
     public static int GridSize;
 
-    public static int MissingPercent;
+    public static int MissingPercent = 40;
 
     public static bool ShowAIMovement;
 
-    public static int AIDifficulty;
+    public static int AIDifficulty = 100;
+    
+    public static bool p1IsAI, p2IsAI = true;
 }

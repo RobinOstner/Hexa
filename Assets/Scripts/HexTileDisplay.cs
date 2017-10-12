@@ -209,7 +209,15 @@ public class HexTileDisplay : MonoBehaviour {
     {
         // Is the Tile even visible?
         if (isVisible()) {
-            hexDisplayText.text = "" + hexTile.units;
+            if (highlighted && GameManager.current.playerControl)
+            {
+                string filler = hexTile.team == GameManager.current.activeTeam ? " + " : " VS ";     
+                hexDisplayText.text = hexTile.units + filler + hexTile.unitsAfterMovement;
+            }
+            else
+            {
+                hexDisplayText.text = "" + hexTile.units;
+            }
         }
         else
         {

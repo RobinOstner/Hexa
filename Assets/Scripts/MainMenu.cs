@@ -37,14 +37,27 @@ public class MainMenu : MonoBehaviour {
             UpdateMissingPercentDisplay();
             UpdateDifficultyDisplay();
         }
+        if(SceneManager.GetActiveScene().buildIndex == 3)
+        {
+            UpdateGridSizeDisplay();
+            UpdateMissingPercentDisplay();
+        }
         SyncSettings();
 	}
 
-    // Changes to the Start New Game Menu
-    public void ShowNewGameMenu()
+    // Changes to the Start New Singleplayer Game Menu
+    public void ShowSingleplayerMenu()
     {
-        Debug.Log("Load Scene 1! Should load the New Game Menu!");
+        Debug.Log("Load Scene 1! Should load the Singleplayer Menu!");
         SceneManager.LoadScene(1);
+    }
+
+    public void ShowVersusMenu()
+    {
+        Debug.Log("Load Scene 3! Should load the Versus Menu!");
+        Settings.p1IsAI = false;
+        Settings.p2IsAI = false;
+        SceneManager.LoadScene(3);
     }
 
     // Starts a new Game

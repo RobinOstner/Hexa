@@ -1,11 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
     // Identification (Player Number)
     public int ID;
+
+    public Text tileCountText;
 
     // The Players Team
     public GameManager.Teams team;
@@ -130,7 +133,7 @@ public class Player : MonoBehaviour
             Movement mov = movements[i];
 
             // Check if Movement still valid
-            if (mov.path.Count <= 1 || mov.path[0].team != team)
+            if (mov.path.Count <= 1 || mov.path[0].team != team || mov.path[0].units == 0)
             {
                 mov.path[0].movementsFromTile.Remove(mov);
                 movements.RemoveAt(i);
@@ -140,7 +143,7 @@ public class Player : MonoBehaviour
                 mov.Move();
 
                 // Check if Movement still valid
-                if (mov.path.Count <= 1 || mov.path[0].team != team)
+                if (mov.path.Count <= 1 || mov.path[0].team != team || mov.path[0].units == 0)
                 {
                     mov.path[0].movementsFromTile.Remove(mov);
                     movements.RemoveAt(i);
@@ -148,4 +151,5 @@ public class Player : MonoBehaviour
             }
         }
     }
+
 }

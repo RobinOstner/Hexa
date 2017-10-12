@@ -18,9 +18,14 @@ public class AI : MonoBehaviour {
     public List<HexTile> borderTiles;
     public List<HexTile> hostileBorderTiles;
 
+    public int difficulty;
+    public int conquerDefend = 90;
+
+    public bool showHostileCount;
+
 	// Use this for initialization
 	void Start () {
-
+        //difficulty = Settings.current.AIDifficulty;
 	}
 	
 	// Update is called once per frame
@@ -29,7 +34,7 @@ public class AI : MonoBehaviour {
         {
             foreach(HexTile tile in borderTiles)
             {
-                tile.hexDisplay.highlighted = true;
+                //tile.hexDisplay.highlighted = true;
             }
         }
 	}
@@ -115,7 +120,7 @@ public class AI : MonoBehaviour {
     {
         HexTile baseTile = playerComponent.tiles[0];
 
-        int difficulty = 100 - Settings.AIDifficulty;
+        int difficultyAdj = 100 - difficulty;
 
         // Remove all already Targeted Tiles
         foreach(Movement mov in playerComponent.movements)
@@ -124,7 +129,7 @@ public class AI : MonoBehaviour {
         }
         
         // Diffulty Adjustments
-        int removeTileCount = (int)((borderTiles.Count / 100f) * difficulty);
+        int removeTileCount = (int)((borderTiles.Count / 100f) * difficultyAdj);
         for(int i=0; i<removeTileCount; i++)
         {
             borderTiles.RemoveAt(Random.Range(0, borderTiles.Count));
@@ -133,7 +138,7 @@ public class AI : MonoBehaviour {
 
         if (borderTiles.Count > 0)
         {
-            int factor = (int)((baseTile.units*difficulty/100f - playerComponent.tiles.Count) / borderTiles.Count);
+            int factor = (int)((baseTile.units*difficultyAdj/100f - playerComponent.tiles.Count) / borderTiles.Count);
 
             while (factor > 0)
             {
@@ -145,6 +150,12 @@ public class AI : MonoBehaviour {
                     Movement mov = new Movement(1, path, playerComponent.team);
                     playerComponent.movements.Add(mov);
                     mov.Move();
+
+                    if (mov.path.Count <= 1 || mov.path[0].team != playerComponent.team || mov.path[0].units == 0)
+                    {
+                        mov.path[0].movementsFromTile.Remove(mov);
+                        playerComponent.movements.Remove(mov);
+                    }
                 }
 
                 factor--;
@@ -161,29 +172,83 @@ public class AI : MonoBehaviour {
                 Movement mov = new Movement(1, path, playerComponent.team);
                 playerComponent.movements.Add(mov);
                 mov.Move();
+
+                if (mov.path.Count <= 1 || mov.path[0].team != playerComponent.team || mov.path[0].units == 0)
+                {
+                    mov.path[0].movementsFromTile.Remove(mov);
+                    playerComponent.movements.Remove(mov);
+                }
             }
         }
     }
 
-    // Tries to send as many possible units to all hostile Tiles
+    // Tries to send as many possible units to all hostile Tiles while still considering Conquering
     private void Defend()
     {
         HexTile baseTile = playerComponent.tiles[0];
-        int factor = (baseTile.units - playerComponent.tiles.Count) / hostileBorderTiles.Count;
 
-        while (factor > 0)
+        int difficultyInv = 100 - difficulty;
+
+        float totalBorderCount = hostileBorderTiles.Count + borderTiles.Count;
+        
+        // The Ideal Amount to spend Units
+        int unitsToSpare = (baseTile.units - playerComponent.tiles.Count);
+        unitsToSpare = (int)(unitsToSpare * Mathf.Min(1, (difficulty + 10) / 100f));
+
+        int unitsToHostile = (int) (unitsToSpare * (hostileBorderTiles.Count / totalBorderCount));
+
+        if (borderTiles.Count != 0)
+        {
+            unitsToHostile = (int)(unitsToHostile * (Mathf.Min(1, difficultyInv + 10 / 100f)));
+        }
+
+        int unitsToBorder = unitsToSpare - unitsToHostile;
+
+        while(unitsToBorder > 0 && borderTiles.Count > 0)
+        {
+            int random = Random.Range(0, borderTiles.Count);
+            HexTile target = borderTiles[random];
+
+            List<HexTile> path = Pathfinding.CalculatePath(baseTile, target);
+            if (path.Count == 0) { continue; }
+
+            Movement mov = new Movement(1, path, playerComponent.team);
+            playerComponent.movements.Add(mov);
+            mov.Move();
+
+            if (mov.path.Count <= 1 || mov.path[0].team != playerComponent.team || mov.path[0].units == 0)
+            {
+                mov.path[0].movementsFromTile.Remove(mov);
+                playerComponent.movements.Remove(mov);
+            }
+
+            borderTiles.RemoveAt(random);
+            unitsToBorder--;
+        }
+
+        while (unitsToHostile > 0)
         {
             foreach (HexTile target in hostileBorderTiles)
             {
-                List<HexTile> path = Pathfinding.CalculatePath(baseTile, target);
-                if (path.Count == 0) { continue; }
+                if (Random.Range(0, 100) <= difficulty)
+                {
 
-                Movement mov = new Movement(1, path, playerComponent.team);
-                playerComponent.movements.Add(mov);
-                mov.Move();
+                    List<HexTile> path = Pathfinding.CalculatePath(baseTile, target);
+                    if (path.Count == 0) { continue; }
+
+                    Movement mov = new Movement(1, path, playerComponent.team);
+                    playerComponent.movements.Add(mov);
+                    mov.Move();
+
+                    if (mov.path.Count <= 1 || mov.path[0].team != playerComponent.team || mov.path[0].units == 0)
+                    {
+                        mov.path[0].movementsFromTile.Remove(mov);
+                        playerComponent.movements.Remove(mov);
+                    }
+                }
             }
 
-            factor--;
+            unitsToHostile--;
         }
 
     }

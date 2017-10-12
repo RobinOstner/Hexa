@@ -46,6 +46,9 @@ public class GameManager : MonoBehaviour {
     public GameObject endScreen;
     private Text endScreenText;
 
+    // Text Object showing the Tile Count
+    public Text tileCountText;
+
 	// Use this for initialization
 	void Start () {
         current = this;
@@ -59,6 +62,12 @@ public class GameManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         nextTeamButton.SetActive(playerControl);
+        UpdateUIInfo();
+
+        if(rounds >= 250)
+        {
+            SceneManager.LoadScene(2);
+        }
 	}
 
     // Initializes The Game
@@ -75,11 +84,19 @@ public class GameManager : MonoBehaviour {
 
         Player newPlayer = Instantiate(playerPrefab, transform).GetComponent<Player>();
         newPlayer.ID = players.Count + 1;
-        newPlayer.isAI = false;
+        if (!Settings.p1IsAI)
+        {
+            newPlayer.isAI = false;
+        }
+        newPlayer.aiComponent.difficulty = Settings.AIDifficulty;
         players.Add(newPlayer);
         newPlayer = Instantiate(playerPrefab, transform).GetComponent<Player>();
         newPlayer.ID = players.Count + 1;
-        //newPlayer.isAI = false;
+        if (!Settings.p2IsAI)
+        {
+            newPlayer.isAI = false;
+        }
+        newPlayer.aiComponent.difficulty = Settings.AIDifficulty;
         players.Add(newPlayer);
     }
 
@@ -171,6 +188,7 @@ public class GameManager : MonoBehaviour {
 
         GridManager.current.DisableHTDT();
 
+
         yield return new WaitForSeconds(1);
 
         yield return new WaitUntil(() => Input.touchCount == 0);
@@ -181,5 +199,11 @@ public class GameManager : MonoBehaviour {
 
         SceneManager.LoadScene(0);
 
+    }
+
+    // Shows all necessary info
+    private void UpdateUIInfo()
+    {
+        tileCountText.text = "TILES: " + activePlayer.tiles.Count;
     }
 }
