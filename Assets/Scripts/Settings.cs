@@ -13,7 +13,7 @@ public class Settings
 {
     //public static Settings current;
     
-    public static int GridSize;
+    public static int GridSize = 3;
 
     public static int MissingPercent = 40;
 

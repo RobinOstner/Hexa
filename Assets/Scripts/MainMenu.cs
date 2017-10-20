@@ -31,6 +31,8 @@ public class MainMenu : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
+        CheckInput();
+
         if (SceneManager.GetActiveScene().buildIndex == 1)
         {
             UpdateGridSizeDisplay();
@@ -44,6 +46,23 @@ public class MainMenu : MonoBehaviour {
         }
         SyncSettings();
 	}
+
+    void CheckInput()
+    {
+        if (Input.GetKeyUp(KeyCode.Escape))
+        {
+            Debug.Log("Return to Previous Screen!");
+
+            if (SceneManager.GetActiveScene().buildIndex == 1)
+            {
+                SceneManager.LoadScene(0);
+            }
+            else if (SceneManager.GetActiveScene().buildIndex == 3)
+            {
+                SceneManager.LoadScene(0);
+            }
+        }
+    }
 
     // Changes to the Start New Singleplayer Game Menu
     public void ShowSingleplayerMenu()

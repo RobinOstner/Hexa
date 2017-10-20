@@ -4,7 +4,17 @@ using UnityEngine;
 
 public class Background : MonoBehaviour {
 
+    // Dynamic Background
     public Color goldBackground, blueBackground, redBackground;
+    public bool dynamic;
+
+    public bool vibrateMainMenu;
+    public Gradient vibeGradient;
+    public float value;
+    public float vibeRate;
+    private float startValue;
+    private float goalValue;
+    private float delta;
 
 	// Use this for initialization
 	void Start () {
@@ -13,7 +23,14 @@ public class Background : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        DynamicBackground();
+        if (dynamic)
+        {
+            DynamicBackground();
+        }
+        if (vibrateMainMenu)
+        {
+            VibrateColor();
+        }
 	}
 
     // Adjust the background color to the active team
@@ -35,5 +52,20 @@ public class Background : MonoBehaviour {
         }
 
         GetComponent<Renderer>().material.color = active;
+    }
+
+    // Makes The Background Color Vibrate
+    void VibrateColor()
+    {
+        delta += Time.deltaTime;
+        value = Mathf.Lerp(startValue, goalValue, vibeRate*delta);
+
+        if(Mathf.Abs(value-goalValue) <= 0.001f)
+        {
+            if (goalValue == 1) { goalValue = 0; startValue = 1; delta = 0; }
+            else { goalValue = 1; startValue = 0; delta = 0; }
+        }
+
+        GetComponent<Renderer>().material.color = vibeGradient.Evaluate(value);
     }
 }
