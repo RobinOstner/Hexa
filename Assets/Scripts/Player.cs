@@ -93,7 +93,7 @@ public class Player : MonoBehaviour
             // Unlock All Tiles
             foreach (HexTile tile in tiles)
             {
-                tile.moveLocked = false;
+                tile.SetMoveLocked(false);
             }
 
             MoveUnitsOnPaths();

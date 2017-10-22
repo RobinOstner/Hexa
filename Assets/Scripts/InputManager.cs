@@ -141,7 +141,7 @@ public class InputManager : MonoBehaviour {
         // Set selected again because it was disabled in the beginning!
         selectedHexTile.SetSelected(true);
 
-        if (selectedHexTile.moveLocked)
+        if (selectedHexTile.IsMoveLocked())
         {
             Debug.Log("Already moved! Cannot move twice in one go!");
         }

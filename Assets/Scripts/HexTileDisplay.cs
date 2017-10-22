@@ -7,7 +7,8 @@ using UnityEngine.UI;
 public class HexTileDisplay : MonoBehaviour {
     
     // Sprite GameObject Reference
-    public GameObject hexagonSprite;
+    public GameObject hexagonSpriteNormal;
+    public GameObject hexagonSpriteStriped;
 
     // Hexagon UI Display
     public GameObject hexDisplayPrefab;     // Prefab
@@ -16,8 +17,10 @@ public class HexTileDisplay : MonoBehaviour {
     private Text hexDisplayText;            // Text Component of Display Object
     public HexTile hexTile;
 
+    public float TextSize;
+
     // Reference to the material
-    private Material spriteMaterial;
+    private Material normalMaterial, stripedMaterial;
 
     // Which Team?
     public GameManager.Teams team;
@@ -45,7 +48,8 @@ public class HexTileDisplay : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         // Set the reference to the Material
-        spriteMaterial = hexagonSprite.GetComponent<Renderer>().material;
+        normalMaterial = hexagonSpriteNormal.GetComponent<Renderer>().material;
+        stripedMaterial = hexagonSpriteStriped.GetComponent<Renderer>().material;
 
         // Receive HexTile Component for future use
         hexTile = GetComponent<HexTile>();
@@ -57,7 +61,7 @@ public class HexTileDisplay : MonoBehaviour {
     public void InitializeHexDisplay()
     {
         // Instantiate the new Display Object
-        hexDisplay = Instantiate(hexDisplayPrefab, FindObjectOfType<Canvas>().transform);
+        hexDisplay = Instantiate(hexDisplayPrefab, GameObject.Find("Canvas").transform);
         // Receive the Rect Transform for future use
         hexDisplayTransform = hexDisplay.GetComponent<RectTransform>();
         // Receive the Text Component for future use
@@ -102,6 +106,10 @@ public class HexTileDisplay : MonoBehaviour {
         Color normalColor = GridManager.current.tileColors.normal;
         Color activeColor = GetColorBasedOnTeam(false);
 
+
+        normalColor = ColorManager.current.SetColor(this);
+
+        /*
         if (GameManager.current.playerControl)
         {
             // Active Team
@@ -132,19 +140,22 @@ public class HexTileDisplay : MonoBehaviour {
                 normalColor /= 2f;
             }
         }
+
+    */
         
         // Make sure it is displayed correctly because of alpha channel
         normalColor = new Color(normalColor.r, normalColor.g, normalColor.b, 1);
 
         // Set the color
-        spriteMaterial.color = normalColor;
+        normalMaterial.color = normalColor;
+        stripedMaterial.color = normalColor;
     }
 
     // No Text & No Color
     public void SetBlank()
     {
         isBlank = true;
-        spriteMaterial.color = GridManager.current.tileColors.normal;
+        normalMaterial.color = ColorManager.current.emptyNormal;
         hexDisplayText.text = "";
     }
 
@@ -195,13 +206,13 @@ public class HexTileDisplay : MonoBehaviour {
     public void CalculateTextCanvasPos()
     {
         Vector3 pos = Camera.main.WorldToViewportPoint(transform.position);
-        Vector3 posCorner = Camera.main.WorldToViewportPoint(transform.position - Vector3.right/2);
+        Vector3 posCorner = Camera.main.WorldToViewportPoint(transform.position - (Vector3.right/2));
         float diff = (pos - posCorner).x * Screen.width/2;
         canvasPosX = pos.x * Screen.width + diff;
         canvasPosY = pos.y * Screen.height + diff;
 
         hexDisplayTransform.position = new Vector3(canvasPosX, canvasPosY, 0);
-        hexDisplayTransform.sizeDelta = new Vector2(diff * 2, diff * 2);
+        hexDisplayTransform.sizeDelta = new Vector2(diff*2, diff*2);
     }
     
     // Changes the values of the Display
@@ -240,17 +251,17 @@ public class HexTileDisplay : MonoBehaviour {
 
         // Set the Color accordingly
         Color newColor = hexTile.isBaseTile && !highlighted ? Color.black : GetColorBasedOnTeam(highlighted) / 3f;
+        newColor = ColorManager.current.SetFontColor(this);
         // Adjust for Base Color
         if (hexTile.isBaseTile)
         {
-            hexDisplayText.fontSize += 20;
+            //hexDisplayText.fontSize += 20;
         }
 
         // Set the Color
         hexDisplayText.color = new Color(newColor.r, newColor.g, newColor.b, 1);
     }
-
-
+    
     // Check the surroundings
     public void CheckNeighbouring()
     {
@@ -265,7 +276,7 @@ public class HexTileDisplay : MonoBehaviour {
     }
 
     // Is the tile color visible for the currently active player
-    private bool isVisible()
+    public bool isVisible()
     {
         return GameManager.current.playerControl && ((isNeighbourToActive && team != GameManager.Teams.Null) || team == GameManager.current.activeTeam);
     }

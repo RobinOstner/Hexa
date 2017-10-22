@@ -36,7 +36,8 @@ public class HexTile : MonoBehaviour
     public int unitsAfterMovement;
 
     // Already moved the Units on this Tile?
-    public bool moveLocked;
+    private bool moveLocked;
+    public bool locked;
 
     public List<Movement> movementsFromTile;
 
@@ -51,6 +52,8 @@ public class HexTile : MonoBehaviour
 
     // Update is called once per frame
     void Update() {
+        locked = moveLocked;
+
         /* Height Change
         transform.localScale = new Vector3(1, 1 + units/100f, 1);
         transform.position = new Vector3(transform.position.x, units/100f/2f, transform.position.z);
@@ -71,7 +74,7 @@ public class HexTile : MonoBehaviour
     // Moves ALL Units from this tile to the other Tile
     public bool MoveUnitsToTile(HexTile otherTile, int Amount)
     {
-        otherTile.moveLocked = otherTile.team == GameManager.current.activeTeam || otherTile.team == GameManager.Teams.Null;
+        otherTile.SetMoveLocked( otherTile.team == GameManager.current.activeTeam || otherTile.team == GameManager.Teams.Null);
 
         // Not possible if Amount is bigger than available units
         if(Amount > units)
@@ -121,6 +124,24 @@ public class HexTile : MonoBehaviour
     {
         hexDisplay.SetSelected(value);
     }
+
+    public void SetMoveLocked(bool value)
+    {
+        moveLocked = value;
+        
+        if (moveLocked)
+        {
+            hexDisplay.hexagonSpriteStriped.SetActive(true);
+            hexDisplay.hexagonSpriteNormal.SetActive(false);
+        }
+        else
+        {
+            hexDisplay.hexagonSpriteStriped.SetActive(false);
+            hexDisplay.hexagonSpriteNormal.SetActive(true);
+        }
+    }
+
+    public bool IsMoveLocked() { return moveLocked; }
 
     // Tests itself whether or not it's free
     public void CheckFree()

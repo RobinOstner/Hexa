@@ -13,7 +13,7 @@ public class Settings
 {
     //public static Settings current;
     
-    public static int GridSize = 3;
+    public static int GridSize = 5;
 
     public static int MissingPercent = 40;
 
@@ -21,5 +21,5 @@ public class Settings
 
     public static int AIDifficulty = 100;
     
-    public static bool p1IsAI, p2IsAI = true;
+    public static bool p1IsAI, p2IsAI;
 }

@@ -38,6 +38,7 @@ public class Background : MonoBehaviour {
     {
         Color active = Color.black;
 
+        /*
         switch (GameManager.current.activeTeam)
         {
             case GameManager.Teams.Gold:
@@ -50,6 +51,9 @@ public class Background : MonoBehaviour {
                 active = redBackground;
                 break;
         }
+        */
+
+        active = ColorManager.current.background;
 
         GetComponent<Renderer>().material.color = active;
     }

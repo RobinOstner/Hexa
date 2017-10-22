@@ -122,7 +122,7 @@ public class GameManager : MonoBehaviour {
 
         // Reset Team to Null
         tile.team = Teams.Null;
-        tile.moveLocked = false;
+        tile.SetMoveLocked(false);
         tile.isBaseTile = false;
     }
 

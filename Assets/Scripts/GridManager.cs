@@ -289,7 +289,7 @@ public class GridManager : MonoBehaviour {
     {
         foreach(HexTileDisplay tile in tiles)
         {
-            tile.hexTile.moveLocked = false;
+            tile.hexTile.SetMoveLocked(false);
             tile.SetBlank();
         }
     }
