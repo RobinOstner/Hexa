@@ -241,7 +241,10 @@ public class GridManager : MonoBehaviour {
             StopAllCoroutines();
             GameManager.current.InitializeGame();
             Start();
-            
+        }
+        else
+        {
+            StartCoroutine(Fades.current.FadeIn());
         }
     }
 

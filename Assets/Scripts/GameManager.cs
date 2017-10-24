@@ -162,6 +162,7 @@ public class GameManager : MonoBehaviour {
             if (selected != null)
             {
                 InputManager.current.selectedHexTile.SetSelected(false);
+                InputManager.current.selectedHexTile = null;
             }
 
             nextTeamText.text = activeTeam.ToString().ToUpper() + " IS NEXT";
@@ -182,6 +183,8 @@ public class GameManager : MonoBehaviour {
     {
         finished = true;
 
+        playerControl = false;
+
         endScreenText.text = defeatedPlayer.team.ToString().ToUpper() + " WAS DEFEATED";
 
         endScreenText.gameObject.SetActive(true);
@@ -196,6 +199,10 @@ public class GameManager : MonoBehaviour {
         yield return new WaitUntil(() => Input.anyKeyDown);
 
         endScreenText.gameObject.SetActive(false);
+
+        StartCoroutine(Fades.current.FadeOut());
+
+        yield return new WaitUntil(() => Fades.current.finished);
 
         SceneManager.LoadScene(0);
 

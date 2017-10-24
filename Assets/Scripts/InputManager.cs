@@ -22,7 +22,7 @@ public class InputManager : MonoBehaviour {
     public bool dragging;
     */
     
-    [HideInInspector]
+    //[HideInInspector]
     public HexTile selectedHexTile;
 
     [HideInInspector]
@@ -37,6 +37,8 @@ public class InputManager : MonoBehaviour {
     public Vector2 totalTouchMovement;
     // Max Touch Movement for Taps
     public float tapMovementThreshold;
+
+    public bool tapActionFound;
 
 	// Use this for initialization
 	void Start () {
@@ -66,15 +68,42 @@ public class InputManager : MonoBehaviour {
             // Get Tap
             Touch touch = Input.touches[0];
 
-            // First Contact
-            if(touch.phase != TouchPhase.Began)
+
+            if (!tapActionFound)
             {
-                // Count Time & Distance only after first Contact
-                totalTouchTime += Time.deltaTime;
-                totalTouchMovement += touch.deltaPosition;
+                // First Contact
+                if (touch.phase != TouchPhase.Began)
+                {
+                    // Count Time & Distance only after first Contact
+                    totalTouchTime += Time.deltaTime;
+                    totalTouchMovement += touch.deltaPosition;
+                }
+
+                // Check for Thresholds
+                if (touch.phase == TouchPhase.Ended && totalTouchTime <= tapTimeThreshold && totalTouchMovement.magnitude <= tapMovementThreshold)
+                {
+                    OnTap(touch);
+                }
+
+                if (totalTouchTime > tapTimeThreshold && totalTouchMovement.magnitude <= tapMovementThreshold)
+                {
+                    // Long Press
+                    OnLongPress(touch);
+                    tapActionFound = true;
+                }
             }
+
+            if (touch.phase == TouchPhase.Ended)
+            {
+                // Reset Counters
+                totalTouchTime = 0;
+                totalTouchMovement = Vector2.zero;
+                tapActionFound = false;
+            }
+
+            /*
             // Touch has ended
-            if(touch.phase == TouchPhase.Ended)
+            if (touch.phase == TouchPhase.Ended)
             {
                 // Check for Thresholds
                 if (totalTouchTime <= tapTimeThreshold && totalTouchMovement.magnitude <= tapMovementThreshold)
@@ -89,11 +118,8 @@ public class InputManager : MonoBehaviour {
                         OnLongPress(touch);
                     }
                 }
-
-                // Reset Counters
-                totalTouchTime = 0;
-                totalTouchMovement = Vector2.zero;
             }
+            */
         }
     }
 
@@ -122,6 +148,32 @@ public class InputManager : MonoBehaviour {
             // Hit HexTile
             HexTile tappedHexTile = tapHit.collider.GetComponentInParent<HexTile>();
 
+            if(selectedHexTile == null)
+            {
+                if (!tappedHexTile.IsMoveLocked() && tappedHexTile.team == GameManager.current.activeTeam)
+                {
+                    selectedHexTile = tappedHexTile;
+                    selectedHexTile.SetSelected(true);
+                    selectedHexTile.attacking = true;
+                    selectedHexTile.unitsAfterMovement = selectedHexTile.units;
+                }
+            }
+            else
+            {
+                if(selectedHexTile == tappedHexTile)
+                {
+                    selectedHexTile.SetSelected(false);
+                    selectedHexTile.attacking = false;
+                    selectedHexTile = null;
+                    GridManager.current.FinishAttackForAllTiles(movements);
+                }
+                else
+                {
+                    TapOnOtherAttack(tappedHexTile);
+                }
+            }
+
+            /*
             // Same HexTile as Selected? More Options should now be presented on the screen!
             if (tappedHexTile == selectedHexTile)
             {
@@ -132,6 +184,7 @@ public class InputManager : MonoBehaviour {
             {
                 TapOnOther(tappedHexTile);
             }
+            */
         }
     }
 
@@ -235,8 +288,12 @@ public class InputManager : MonoBehaviour {
                 }
                 else
                 {
+                    StartCoroutine(CameraBehaviour.current.Shake());
+
                     // Long Press on selected Tile when in Attack Mode cancels all operations
                     GridManager.current.FinishAttackForAllTiles(new List<Movement>());
+                    selectedHexTile.SetSelected(false);
+                    selectedHexTile = null;
                 }
             }
         }

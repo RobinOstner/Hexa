@@ -30,6 +30,9 @@ public class CameraBehaviour : MonoBehaviour {
     // How fast does the constraint react
     public float constraintSpeed;
 
+    public float shakeDuration;
+    public float shakeIntensity;
+
     // Alternate Zoom/Move
 
 	// Use this for initialization
@@ -104,7 +107,39 @@ public class CameraBehaviour : MonoBehaviour {
             }
         }
     }
-    
+
+    public IEnumerator Shake()
+    {
+
+        float elapsed = 0.0f;
+
+        Vector3 originalCamPos = Camera.main.transform.position;
+
+        while (elapsed < shakeDuration)
+        {
+
+            elapsed += Time.deltaTime;
+
+            float percentComplete = elapsed / shakeDuration;
+            float damper = 1.0f - Mathf.Clamp(4.0f * percentComplete - 3.0f, 0.0f, 1.0f);
+
+            // map value to [-1, 1]
+            float x = Random.value * 2.0f - 1.0f;
+            float z = Random.value * 2.0f - 1.0f;
+            x *= originalCamPos.y * shakeIntensity * damper;
+            z *= originalCamPos.y * shakeIntensity * damper;
+
+            x += originalCamPos.x;
+            z += originalCamPos.z;
+
+            Camera.main.transform.position = new Vector3(x, originalCamPos.y, z);
+
+            yield return null;
+        }
+
+        Camera.main.transform.position = originalCamPos;
+    }
+
     // Move the Camera with 2 Fingers
     void PinchMoveZoom()
     {
@@ -153,19 +188,19 @@ public class CameraBehaviour : MonoBehaviour {
             height = Mathf.Min(Mathf.Lerp(height, GridManager.current.gridSize, Time.deltaTime * constraintSpeed), GridManager.current.gridSize*2f);
         }
 
-        if(posX < 2)
+        if(posX < 0)
         {
             posX = Mathf.Lerp(posX, 2, Time.deltaTime * constraintSpeed);
         }
-        if (posX > GridManager.current.gridSize-2)
+        if (posX > GridManager.current.gridSize)
         {
             posX = Mathf.Lerp(posX, GridManager.current.gridSize-2, Time.deltaTime * constraintSpeed);
         }
-        if (posZ < 1)
+        if (posZ < 0)
         {
             posZ = Mathf.Lerp(posZ, 1, Time.deltaTime * constraintSpeed);
         }
-        if (posZ > GridManager.current.gridSize-1)
+        if (posZ > GridManager.current.gridSize)
         {
             posZ = Mathf.Lerp(posZ, GridManager.current.gridSize-1, Time.deltaTime * constraintSpeed);
         }

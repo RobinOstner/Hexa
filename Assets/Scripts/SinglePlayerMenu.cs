@@ -26,7 +26,14 @@ public class SinglePlayerMenu : MonoBehaviour {
         // Should be able to be changed in settings
         Settings.ShowAIMovement = false;
 
-        Debug.Log("Start New Singleplayer Game: Size: " + Settings.GridSize + " Mix: " + Settings.MissingPercent + " Diff: " + Settings.AIDifficulty);
+        StartCoroutine(StartNewGameFade());
+    }
+
+    public IEnumerator StartNewGameFade()
+    {
+        StartCoroutine(Fades.current.FadeOut());
+
+        yield return new WaitUntil(() => Fades.current.finished);
 
         SceneManager.LoadScene(2);
     }

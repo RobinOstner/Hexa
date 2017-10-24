@@ -18,7 +18,9 @@ public class MenuTransitions : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         transform = GetComponent<RectTransform>();
-	}
+
+        StartCoroutine(Fades.current.FadeIn());
+    }
 	
 	// Update is called once per frame
 	void Update () {

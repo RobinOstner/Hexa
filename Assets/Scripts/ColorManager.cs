@@ -8,8 +8,8 @@ public class ColorManager : MonoBehaviour {
 
     public Color background,
         emptyNormal, emptySelected, emptyHighlighted, emptyFont,
-        goldNormal, goldSelected, goldHighlighted, goldFont, 
-        blueNormal, blueSelected, blueHighlighted, blueFont;
+        goldNormal, goldSelected, goldHighlighted, goldFont, goldSelectedFont, 
+        blueNormal, blueSelected, blueHighlighted, blueFont, blueSelectedFont;
 
 	// Use this for initialization
 	void Start () {
@@ -52,14 +52,29 @@ public class ColorManager : MonoBehaviour {
         {
             return emptyFont;
         }
-        switch (tile.team)
+        if (tile.selected || tile.highlighted)
         {
-            case GameManager.Teams.Gold:
-                return goldFont;
-            case GameManager.Teams.Blue:
-                return blueFont;
-            default:
-                return Color.black;
+            switch (tile.team)
+            {
+                case GameManager.Teams.Gold:
+                    return goldSelectedFont;
+                case GameManager.Teams.Blue:
+                    return blueSelectedFont;
+                default:
+                    return emptyFont;
+            }
+        }
+        else
+        {
+            switch (tile.team)
+            {
+                case GameManager.Teams.Gold:
+                    return goldFont;
+                case GameManager.Teams.Blue:
+                    return blueFont;
+                default:
+                    return emptyFont;
+            }
         }
     }
 }
