@@ -61,7 +61,7 @@ public class HexTileDisplay : MonoBehaviour {
     public void InitializeHexDisplay()
     {
         // Instantiate the new Display Object
-        hexDisplay = Instantiate(hexDisplayPrefab, GameObject.Find("Canvas").transform);
+        hexDisplay = Instantiate(hexDisplayPrefab, GameObject.Find("Displays").transform);
         // Receive the Rect Transform for future use
         hexDisplayTransform = hexDisplay.GetComponent<RectTransform>();
         // Receive the Text Component for future use
@@ -104,44 +104,8 @@ public class HexTileDisplay : MonoBehaviour {
     {
         // Reset Color to normal
         Color normalColor = GridManager.current.tileColors.normal;
-        Color activeColor = GetColorBasedOnTeam(false);
-
 
         normalColor = ColorManager.current.SetColor(this);
-
-        /*
-        if (GameManager.current.playerControl)
-        {
-            // Active Team
-            if (team == GameManager.current.activeTeam)
-            {
-                normalColor = activeColor;
-            }
-
-            // Other Team but Neighbouring
-            if (team != GameManager.current.activeTeam && team != GameManager.Teams.Null && isNeighbourToActive)
-            {
-                normalColor = activeColor / 2;
-            }
-
-            // Tile is Selected
-            if (selected)
-            {
-                normalColor *= 4f;
-            }
-            // Tile is Highlighted && team != GameManager.current.activePlayer.team
-            if (highlighted)
-            {
-                normalColor *= 2f;
-            }
-
-            if (hexTile.moveLocked)
-            {
-                normalColor /= 2f;
-            }
-        }
-
-    */
         
         // Make sure it is displayed correctly because of alpha channel
         normalColor = new Color(normalColor.r, normalColor.g, normalColor.b, 1);

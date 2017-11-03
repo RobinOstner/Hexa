@@ -15,11 +15,11 @@ public class Settings
     
     public static int GridSize = 5;
 
-    public static int MissingPercent = 40;
+    public static int MissingPercent = 0;
 
     public static bool ShowAIMovement;
 
     public static int AIDifficulty = 100;
     
-    public static bool p1IsAI, p2IsAI;
+    public static bool p1IsAI, p2IsAI = true;
 }

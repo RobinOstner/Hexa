@@ -16,6 +16,10 @@ public class CameraBehaviour : MonoBehaviour {
     // Zoom/Move Mode
     public bool pinchZoomMoveEnabled;
 
+    // REPLAYS
+    public bool replayMode;
+    public Transform focusTransform;
+
     // PinchZoom/Move
     // Is Pinching?
     public bool isPinching;
@@ -43,25 +47,53 @@ public class CameraBehaviour : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-        // Camera can only be controlled if Player is actually in Control
-        if (GameManager.current.playerControl && !GameManager.current.activePlayer.isAI)
+        if (replayMode)
         {
-            if (pinchZoomMoveEnabled)
+            FocusReplay();
+        }
+        else
+        {
+            // Camera can only be controlled if Player is actually in Control
+            if (GameManager.current.playerControl && !GameManager.current.activePlayer.isAI)
             {
-                PinchMoveZoom();
+                if (pinchZoomMoveEnabled)
+                {
+                    PinchMoveZoom();
+                }
+                else
+                {
+                    AlternateMoveZoom();
+                }
+
+                MoveZoomConstraints();
             }
             else
             {
-                AlternateMoveZoom();
+                MoveCameraToMiddle();
             }
+        }
+	}
 
-            MoveZoomConstraints();
+    void FocusReplay()
+    {
+        if (focusTransform != null)
+        {
+            targetPosition = focusTransform.position + new Vector3(0.5f, 0, 0.5f) + Vector3.up * 2;
+
+            if ((targetPosition - transform.position).magnitude >= 0.01f)
+            {
+                // Slerping of Position
+                Vector3 movedPosition = Vector3.Slerp(transform.position, targetPosition, cameraSpeed);
+
+                // Assign Position
+                transform.position = movedPosition;
+            }
         }
         else
         {
             MoveCameraToMiddle();
         }
-	}
+    }
 
     // Moves Camera to the Middle of the Grid
     void MoveCameraToMiddle()

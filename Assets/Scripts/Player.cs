@@ -17,6 +17,9 @@ public class Player : MonoBehaviour
     [HideInInspector]
     public AI aiComponent;
 
+    // Replay Component attached to gameobject
+    public Replay replays;
+
     // Is this player AI controlled?
     public bool isAI
     {
@@ -39,6 +42,8 @@ public class Player : MonoBehaviour
     {
         name = "Player " + ID + ((isAI) ? " (AI)": "");
         tiles = new List<HexTile>();
+
+        replays = GetComponent<Replay>();
 
         SetTeamColor();
 	}
@@ -83,8 +88,6 @@ public class Player : MonoBehaviour
     // Starts the Turn and updates the counts of the Tiles
     public void StartTurn()
     {
-        if (tiles.Count > 0)
-        {
             tiles[0].GetComponent<HexTile>().isBaseTile = true;
 
             int tileCount = tiles.Count;
@@ -95,22 +98,19 @@ public class Player : MonoBehaviour
             {
                 tile.SetMoveLocked(false);
             }
-
+            
             MoveUnitsOnPaths();
+
+            if (!isAI)
+            {
+                StartCoroutine(replays.ShowReplay());
+            }
 
             // AI Movement
             if (isAI)
             {
                 aiComponent.StartTurn();
             }
-        }
-        else
-        {
-            if (GameManager.current.rounds > 0)
-            {
-                StartCoroutine(GameManager.current.Defeat(this));
-            }
-        }
     }
 
     // Calculates the amount of units the player receives
@@ -127,26 +127,33 @@ public class Player : MonoBehaviour
 
     private void MoveUnitsOnPaths()
     {
-        // All Movements
-        for (int i = movements.Count - 1; i >= 0; i--)
+        List<Movement> movementsCopy = new List<Movement>();
+
+        for(int i = 0; i < movements.Count; i++)
         {
-            Movement mov = movements[i];
+            movementsCopy.Add(movements[i]);
+        }
+
+        // All Movements
+        for (int i = 0; i < movementsCopy.Count; i++)
+        {
+            Movement mov = movementsCopy[i];
 
             // Check if Movement still valid
             if (mov.path.Count <= 1 || mov.path[0].team != team || mov.path[0].units == 0)
             {
                 mov.path[0].movementsFromTile.Remove(mov);
-                movements.RemoveAt(i);
+                movements.Remove(mov);
             }
             else
             {
-                mov.Move();
+                mov.Move(true);
 
                 // Check if Movement still valid
                 if (mov.path.Count <= 1 || mov.path[0].team != team || mov.path[0].units == 0)
                 {
                     mov.path[0].movementsFromTile.Remove(mov);
-                    movements.RemoveAt(i);
+                    movements.Remove(mov);
                 }
             }
         }

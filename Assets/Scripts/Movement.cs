@@ -22,7 +22,7 @@ public class Movement {
     }
 
     // Moves all the units in this Movement
-    public void Move()
+    public void Move(bool replay)
     {
         HexTile current = path[0];
 
@@ -31,7 +31,7 @@ public class Movement {
 
             current.movementsFromTile.Remove(this);
 
-            current.MoveUnitsToTile(path[1], units);
+            current.MoveUnitsToTile(path[1], units, replay);
 
             path.RemoveAt(0);
 
@@ -45,7 +45,7 @@ public class Movement {
 
     public void HighlightPath()
     {
-        if (path.Count > 0)
+        if (path.Count > 0 && !CameraBehaviour.current.replayMode)
         {
             if (path[0].hexDisplay.selected)
             {

@@ -61,13 +61,8 @@ public class GameManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        nextTeamButton.SetActive(playerControl);
+        nextTeamButton.SetActive(playerControl && !CameraBehaviour.current.replayMode);
         UpdateUIInfo();
-
-        if(rounds >= 250)
-        {
-            SceneManager.LoadScene(2);
-        }
 	}
 
     // Initializes The Game
@@ -112,6 +107,20 @@ public class GameManager : MonoBehaviour {
         player.tiles.Add(tile);
     }
 
+    // Returns the player according to the team
+    public Player GetPlayerByTeam(Teams team)
+    {
+        foreach(Player p in players)
+        {
+            if (p.team == team)
+            {
+                return p;
+            }
+        }
+
+        return null;
+    }
+
     // Resets the tile and removes it from all players
     public void ResetTile(HexTile tile)
     {
@@ -147,9 +156,40 @@ public class GameManager : MonoBehaviour {
             rounds++;
         }
 
-        activePlayer.StartTurn();
+        
+        if (activePlayer.tiles.Count == 0)
+        {
+            if (current.rounds > 0)
+            {
+                activeTeam--;
 
-        StartCoroutine(PlayerChange());
+                if((int)activeTeam <= 0)
+                {
+                    current.activeTeam = Teams.Blue;
+                }
+
+                Debug.Log("Active: " + activePlayer);
+
+                if (!activePlayer.isAI)
+                {
+                    StartCoroutine(activePlayer.replays.ShowReplay());
+                }
+
+                activeTeam++;
+
+                if ((int)activeTeam > players.Count)
+                {
+                    current.activeTeam = Teams.Gold;
+                    rounds++;
+                }
+
+                StartCoroutine(current.Defeat(activePlayer));
+            }
+        }
+        else
+        {
+            StartCoroutine(PlayerChange());
+        }
     }
 
     public IEnumerator PlayerChange()
@@ -164,23 +204,37 @@ public class GameManager : MonoBehaviour {
                 InputManager.current.selectedHexTile.SetSelected(false);
                 InputManager.current.selectedHexTile = null;
             }
-
             nextTeamText.text = activeTeam.ToString().ToUpper() + " IS NEXT";
             nextTeamScreen.SetActive(true);
 
-            yield return new WaitUntil(() => Input.touchCount == 0);
-            yield return new WaitUntil(() => Input.touchCount > 0);
+            if (activePlayer.isAI)
+            {
+                activePlayer.StartTurn();
+            }
+            else
+            {
 
-            nextTeamScreen.SetActive(false);
-            playerControl = true;
+                yield return new WaitUntil(() => Input.touchCount == 0);
+                yield return new WaitUntil(() => Input.touchCount > 0);
 
-            StartCoroutine(CameraBehaviour.current.MoveCameraToLast(activePlayer.lastCameraPos));
+                if (!activePlayer.isAI)
+                {
+                    activePlayer.StartTurn();
+                }
+
+                playerControl = true;
+
+                nextTeamScreen.SetActive(false);
+            }
         }
+
     }
 
     // Show the End Screens
     public IEnumerator Defeat(Player defeatedPlayer)
     {
+        yield return new WaitUntil(() => !CameraBehaviour.current.replayMode);
+
         finished = true;
 
         playerControl = false;
@@ -188,6 +242,8 @@ public class GameManager : MonoBehaviour {
         endScreenText.text = defeatedPlayer.team.ToString().ToUpper() + " WAS DEFEATED";
 
         endScreenText.gameObject.SetActive(true);
+
+        nextTeamScreen.gameObject.SetActive(false);
 
         GridManager.current.DisableHTDT();
 

@@ -72,47 +72,133 @@ public class HexTile : MonoBehaviour
     }
 
     // Moves ALL Units from this tile to the other Tile
-    public bool MoveUnitsToTile(HexTile otherTile, int Amount)
+    public bool MoveUnitsToTile(HexTile otherTile, int Amount, bool replay)
     {
         otherTile.SetMoveLocked( otherTile.team == GameManager.current.activeTeam || otherTile.team == GameManager.Teams.Null);
+
+        otherTile.CheckFree();
 
         // Not possible if Amount is bigger than available units
         if(Amount > units)
         {
             return false;
         }
-
         // Same Team
         if (team == otherTile.team)
         {
+            ChangedTile change = new ChangedTile(this, otherTile, -1, 1);
+            change.AddTeamBefore(team, otherTile.team);
+
             otherTile.units += Amount;
             units -= Amount;
+
+            Player player = GameManager.current.GetPlayerByTeam(otherTile.team);
+
+            GameManager.Teams after = units == 0 ? GameManager.Teams.Null : team;
+            change.AddTeamAfter(after, otherTile.team, units, otherTile.units);
+            if (replay)
+            {
+                player.replays.AddMovementToReplay(change);
+            }
+
+            if (change.teamBBefore != change.teamBAfter && change.teamBAfter != GameManager.Teams.Null)
+            {
+                Debug.Log("Marked Change " + change.tileA + "->" + change.tileB + ": SAME TEAM");
+                change.Mark();
+            }
+
+            CheckFree();
+            otherTile.CheckFree();
 
             return true;
         }
         // Other Team
         if (otherTile.team != GameManager.Teams.Null)
         {
+            ChangedTile change = new ChangedTile(this, otherTile, -1, -1);
+            change.AddTeamBefore(team, otherTile.team);
+
             otherTile.units -= Amount;
             units -= Amount;
+
+            GameManager.Teams otherBefore = otherTile.team;
 
             // Conquered other Tile
             if (otherTile.units < 0)
             {
+                Debug.Log("Conquered Tile! Shouldn't happen! Amount: " + Amount);
                 GameManager.current.AddTileToPlayer(otherTile, GameManager.current.activePlayer);
 
                 otherTile.units *= -1;
             }
+            
+            Player player = GameManager.current.GetPlayerByTeam(otherTile.team);
+
+            GameManager.Teams afterOwn = units <= 0 ? GameManager.Teams.Null : team;
+            
+            GameManager.Teams afterOther;
+
+            if(otherTile.units <= 0)
+            {
+                afterOther = GameManager.Teams.Null;
+            }
+            else
+            {
+                afterOther = otherTile.team;
+            }
+
+
+            change.AddTeamAfter(afterOwn, afterOther, units, otherTile.units);
+            player.replays.AddMovementToReplay(change);
+
+            if(change.teamBBefore != change.teamBAfter && change.teamBAfter != GameManager.Teams.Null)
+            {
+                Debug.Log("Marked Change " + change.tileA + "->" + change.tileB + ": OTHER TEAM");
+                change.Mark();
+            }
+
+            if (replay)
+            {
+                GameManager.current.GetPlayerByTeam(team).replays.AddMovementToReplay(change);
+            }
+
+            CheckFree();
+            otherTile.CheckFree();
 
             return true;
         }
         // Empty HexTile
         if (otherTile.team == GameManager.Teams.Null)
         {
+            ChangedTile change = new ChangedTile(this, otherTile, -1, 1);
+            change.AddTeamBefore(team, otherTile.team);
+
             GameManager.current.AddTileToPlayer(otherTile, GameManager.current.activePlayer);
 
             otherTile.units = Amount;
             units -= Amount;
+            
+
+            Player player = GameManager.current.GetPlayerByTeam(team);
+
+            GameManager.Teams after = units == 0 ? GameManager.Teams.Null : team;
+            change.AddTeamAfter(after, otherTile.team, units, otherTile.units);
+
+
+            if (change.teamBBefore != change.teamBAfter && change.teamBAfter != GameManager.Teams.Null && change.teamBBefore != GameManager.Teams.Null)
+            {
+                Debug.Log("Marked Change " + change.tileA + "->" + change.tileB + ": EMPTY");
+                change.Mark();
+            }
+
+            if (replay)
+            {
+                player.replays.AddMovementToReplay(change);
+            }
+
+            CheckFree();
+            otherTile.CheckFree();
+
             return true;
         }
 
@@ -146,7 +232,7 @@ public class HexTile : MonoBehaviour
     // Tests itself whether or not it's free
     public void CheckFree()
     {
-        if(!attacking && units <= 0)
+        if(!attacking && !CameraBehaviour.current.replayMode && units <= 0)
         {
             GameManager.current.ResetTile(this);
         }

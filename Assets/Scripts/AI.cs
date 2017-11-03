@@ -149,7 +149,7 @@ public class AI : MonoBehaviour {
 
                     Movement mov = new Movement(1, path, playerComponent.team);
                     playerComponent.movements.Add(mov);
-                    mov.Move();
+                    mov.Move(true);
 
                     if (mov.path.Count <= 1 || mov.path[0].team != playerComponent.team || mov.path[0].units == 0)
                     {
@@ -171,7 +171,7 @@ public class AI : MonoBehaviour {
 
                 Movement mov = new Movement(1, path, playerComponent.team);
                 playerComponent.movements.Add(mov);
-                mov.Move();
+                mov.Move(true);
 
                 if (mov.path.Count <= 1 || mov.path[0].team != playerComponent.team || mov.path[0].units == 0)
                 {
@@ -214,7 +214,7 @@ public class AI : MonoBehaviour {
 
             Movement mov = new Movement(1, path, playerComponent.team);
             playerComponent.movements.Add(mov);
-            mov.Move();
+            mov.Move(true);
 
             if (mov.path.Count <= 1 || mov.path[0].team != playerComponent.team || mov.path[0].units == 0)
             {
@@ -238,7 +238,7 @@ public class AI : MonoBehaviour {
 
                     Movement mov = new Movement(1, path, playerComponent.team);
                     playerComponent.movements.Add(mov);
-                    mov.Move();
+                    mov.Move(true);
 
                     if (mov.path.Count <= 1 || mov.path[0].team != playerComponent.team || mov.path[0].units == 0)
                     {

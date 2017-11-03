@@ -217,11 +217,18 @@ public class GridManager : MonoBehaviour {
 
             // Change Tile Team & Info
             baseTile.isBaseTile = true;
-            baseTile.units = 1;
+            baseTile.units = 4;
             GameManager.current.AddTileToPlayer(baseTile, GameManager.current.activePlayer);
 
             // Cycle Through Teams
-            GameManager.current.NextTeam();
+            //GameManager.current.NextTeam();
+
+            GameManager.current.activeTeam++;
+
+            if((int)GameManager.current.activeTeam > GameManager.current.players.Count)
+            {
+                GameManager.current.activeTeam = GameManager.Teams.Gold;
+            }
         }
 
         CheckBaseTilesConnection(baseTiles);
@@ -244,6 +251,8 @@ public class GridManager : MonoBehaviour {
         }
         else
         {
+            GameManager.current.activeTeam = GameManager.Teams.Blue;
+            GameManager.current.NextTeam();
             StartCoroutine(Fades.current.FadeIn());
         }
     }
@@ -277,7 +286,7 @@ public class GridManager : MonoBehaviour {
         foreach(Movement mov in movements)
         {
             GameManager.current.activePlayer.movements.Add(mov);
-            mov.Move();
+            mov.Move(false);
             if (mov.path.Count <= 1 || mov.path[0].team != GameManager.current.activeTeam)
             {
                 GameManager.current.activePlayer.movements.Remove(mov);

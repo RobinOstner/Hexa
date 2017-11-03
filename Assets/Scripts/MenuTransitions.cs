@@ -5,7 +5,7 @@ using UnityEngine;
 public class MenuTransitions : MonoBehaviour {
 
     // The Transform of this object
-    RectTransform transform;
+    new RectTransform transform;
 
     public enum Menus { main, singleplayer, versus, settings }
     public Menus currentMenu;
@@ -18,6 +18,8 @@ public class MenuTransitions : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         transform = GetComponent<RectTransform>();
+
+        Application.targetFrameRate = 60;
 
         StartCoroutine(Fades.current.FadeIn());
     }
